@@ -1,24 +1,23 @@
 import { neighborsEU } from "./roulette";
 
 /**
- * 20 camadas de seleção (ciclo):
- * C1 .. C20 -> volta pro C1
+ * 10 cores primárias de seleção
  */
-export const SEL_ORDER = Array.from({ length: 20 }, (_, i) => `c${i + 1}` as const);
+export const SEL_ORDER = Array.from({ length: 10 }, (_, i) => `c${i + 1}` as const);
 
 export type SelColor = (typeof SEL_ORDER)[number];
 
 export type SelMode = "neighbors" | "unique" | "terminalDisguised" | "sumDisguised" | "newMarking";
 
 export type SelState = {
-  cursor: number; // 0..SEL_ORDER.length-1
+  activeColorIndex: number; // Índice da cor selecionada manualmente (0..9)
   sets: Record<SelColor, Set<number>>;
 };
 
 export function initSel(): SelState {
   const sets = {} as Record<SelColor, Set<number>>;
   for (const c of SEL_ORDER) sets[c] = new Set<number>();
-  return { cursor: 0, sets };
+  return { activeColorIndex: 0, sets };
 }
 
 function digitalRoot(n: number): number {
@@ -65,7 +64,6 @@ function setForMode(n: number, mode: SelMode): Set<number> {
     for (const x of ALL_NUMS) {
       if (disguisedKey(x) === t && x !== t) set.add(x);
     }
-    // inclui também o número clicado (para ficar marcado)
     set.add(n);
     return set;
   }
@@ -87,22 +85,38 @@ function setForMode(n: number, mode: SelMode): Set<number> {
   return new Set<number>([n]);
 }
 
+/**
+ * Aplica o clique usando a cor ATIVA (sem avançar o cursor automaticamente)
+ */
 export function applyClick(sel: SelState, n: number, mode: SelMode = "neighbors"): SelState {
-  const color = SEL_ORDER[sel.cursor];
+  const color = SEL_ORDER[sel.activeColorIndex];
   const nextSet = setForMode(n, mode);
 
   const sets = {} as Record<SelColor, Set<number>>;
   for (const c of SEL_ORDER) sets[c] = new Set(sel.sets[c]);
 
-  // limpa só a cor que está sendo reutilizada
+  // Se o número já estiver nessa cor, limpa a cor (toggle)
+  // Caso contrário, limpa a cor e adiciona os novos números
+  const isAlreadyInThisColor = Array.from(nextSet).every(x => sets[color].has(x));
+  
   sets[color].clear();
-  nextSet.forEach((x) => sets[color].add(x));
+  if (!isAlreadyInThisColor) {
+    nextSet.forEach((x) => sets[color].add(x));
+  }
 
-  return { cursor: (sel.cursor + 1) % SEL_ORDER.length, sets };
+  return { ...sel, sets };
 }
 
 /**
- * Prioridade visual fixa: C20 > ... > C1
+ * Muda a cor ativa manualmente
+ */
+export function setActiveColor(sel: SelState, index: number): SelState {
+  if (index < 0 || index >= SEL_ORDER.length) return sel;
+  return { ...sel, activeColorIndex: index };
+}
+
+/**
+ * Prioridade visual fixa: C10 > ... > C1
  */
 export function selClass(sel: SelState, n: number): "" | `selC${number}` {
   for (let i = SEL_ORDER.length - 1; i >= 0; i--) {

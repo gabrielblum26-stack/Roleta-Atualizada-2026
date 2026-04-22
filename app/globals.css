@@ -11,27 +11,17 @@
   --black:#1c1c1c;
   --green:#0f7a3a;
 
-  /* seleção: bem chamativa (20 camadas) */
+  /* seleção: 10 cores primárias */
 --selC1:#1a66ff;   /* azul */
 --selC2:#ffd000;   /* amarelo */
 --selC3:#26d07c;   /* verde */
---selC4:#7c3aed;   /* roxo */
---selC5:#ff7a00;   /* laranja */
---selC6:#ff3d9a;   /* rosa */
---selC7:#00c2ff;   /* ciano */
---selC8:#b7ff00;   /* limão */
---selC9:#ff1744;   /* vermelho forte */
---selC10:#00e5a8;  /* verde-água */
---selC11:#ffb300;  /* âmbar */
---selC12:#8b5cf6;  /* violeta */
---selC13:#ff6b6b;  /* coral */
---selC14:#4dd0e1;  /* aqua */
---selC15:#c6ff00;  /* chartreuse */
---selC16:#ff00ff;  /* magenta */
---selC17:#00ff6a;  /* neon green */
---selC18:#ff4d00;  /* neon orange */
---selC19:#4bff00;  /* neon lime */
---selC20:#00b0ff;  /* azure */
+--selC4:#ff3b30;   /* vermelho */
+--selC5:#af52de;   /* roxo */
+--selC6:#ff9500;   /* laranja */
+--selC7:#5ac8fa;   /* ciano */
+--selC8:#ff2d55;   /* rosa */
+--selC9:#ffffff;   /* branco */
+--selC10:#8e8e93;  /* cinza */
 
 /* repetição no mapa */
   --highlight:#ffd54a;
@@ -1235,4 +1225,52 @@ body.theme-dark .btn-theme{
 .historyPair{
   border:3px solid #39ff14 !important;
   box-shadow:0 0 10px rgba(57,255,20,.65) !important;
+}
+
+/* Seletor de Cores Manual */
+.colorPicker{
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255,255,255,0.15);
+  padding: 8px 12px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+}
+.colorCircle{
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid rgba(255,255,255,0.8);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.colorCircle:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+.colorCircle.active{
+  border-color: #000;
+  transform: scale(1.2);
+  box-shadow: 0 0 12px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+.colorLabel{
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--muted);
+  margin-right: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+body.theme-dark .colorPicker {
+  background: rgba(0,0,0,0.2);
+}
+body.theme-dark .colorCircle {
+  border-color: rgba(255,255,255,0.2);
+}
+body.theme-dark .colorCircle.active {
+  border-color: #fff;
 }
