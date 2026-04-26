@@ -310,6 +310,7 @@ export default function Page() {
             <option value="terminalDisguised">3 — Disfarçados do Terminal</option>
             <option value="sumDisguised">4 — Disfarçados da Soma</option>
             <option value="newMarking">5 — Nova marcação</option>
+            <option value="zoneMarking">6 — Marcação de zona</option>
           </select>
         </div>
 

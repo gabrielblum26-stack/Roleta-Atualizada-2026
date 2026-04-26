@@ -7,7 +7,7 @@ export const SEL_ORDER = Array.from({ length: 10 }, (_, i) => `c${i + 1}` as con
 
 export type SelColor = (typeof SEL_ORDER)[number];
 
-export type SelMode = "neighbors" | "unique" | "terminalDisguised" | "sumDisguised" | "newMarking";
+export type SelMode = "neighbors" | "unique" | "terminalDisguised" | "sumDisguised" | "newMarking" | "zoneMarking";
 
 export type SelState = {
   activeColorIndex: number; // Índice da cor selecionada manualmente (0..9)
@@ -48,6 +48,14 @@ const NEW_MARKING_MAP: Record<number, number[]> = {
   9: [9, 19, 29, 18, 36, 27],
 };
 
+// Definição das zonas clássicas da roleta
+const ZONES = {
+  VOISINS: [22, 18, 29, 7, 28, 12, 35, 3, 26, 0, 32, 15, 19, 4, 21, 2, 25],
+  TIERS: [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33],
+  ORPHELINS: [1, 20, 14, 31, 9, 17, 34, 6],
+  ZERO_GAME: [12, 35, 3, 26, 0, 32, 15]
+};
+
 function setForMode(n: number, mode: SelMode): Set<number> {
   if (mode === "neighbors") {
     const nb = neighborsEU(n);
@@ -80,6 +88,14 @@ function setForMode(n: number, mode: SelMode): Set<number> {
     const t = Math.abs(n) % 10;
     const nums = NEW_MARKING_MAP[t] || [n];
     return new Set<number>(nums);
+  }
+
+  if (mode === "zoneMarking") {
+    // Verifica em qual zona o número clicado está e retorna todos os números daquela zona
+    if (ZONES.ZERO_GAME.includes(n)) return new Set<number>(ZONES.ZERO_GAME);
+    if (ZONES.VOISINS.includes(n)) return new Set<number>(ZONES.VOISINS);
+    if (ZONES.TIERS.includes(n)) return new Set<number>(ZONES.TIERS);
+    if (ZONES.ORPHELINS.includes(n)) return new Set<number>(ZONES.ORPHELINS);
   }
 
   return new Set<number>([n]);
