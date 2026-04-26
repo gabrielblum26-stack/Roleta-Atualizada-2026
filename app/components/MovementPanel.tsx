@@ -25,19 +25,31 @@ export default function MovementPanel({
 }) {
   const [mode, setMode] = useState<DistanceMode>("shortest");
 
-  // Calcular os movimentos dos últimos 10 números
+  // Calcular os movimentos dos últimos 100 números
   const movements: MovementRecord[] = [];
-  for (let i = 0; i < Math.min(history.length - 1, 10); i++) {
+  for (let i = 0; i < Math.min(history.length - 1, 100); i++) {
     const from = history[i + 1];
     const to = history[i];
     const { h, ah } = wheelDistance(from, to);
     movements.push({ from, to, h, ah });
   }
 
+  // Pegar o último movimento para destaque
+  const lastMovement = movements.length > 0 ? movements[0] : null;
+  let lastDistance = 0;
+  let lastDirection = "";
+  let lastIsH = false;
+
+  if (lastMovement) {
+    lastIsH = lastMovement.h <= lastMovement.ah;
+    lastDistance = lastIsH ? lastMovement.h : lastMovement.ah;
+    lastDirection = lastIsH ? "H" : "A";
+  }
+
   return (
     <div className="movementPanel">
       <div className="movementHeader">
-        <div className="movementTitle">Deslocamento (H/A)</div>
+        <div className="movementTitle">Deslocamento (H/A) - Últimos 100</div>
         <div className="movementModeSelector">
           <button
             className={`modeBtn ${mode === "shortest" ? "active" : ""}`}
@@ -53,12 +65,41 @@ export default function MovementPanel({
           </button>
         </div>
       </div>
-      <div className="movementStrip">
+
+      {/* Seção de Destaque do Último Movimento */}
+      {lastMovement && (
+        <div className="movementHighlight">
+          <div className="highlightBox">
+            <div className="highlightLabel">H ATUAL</div>
+            <div className="highlightValue" style={{ color: lastIsH ? "#ffd000" : "#aaa" }}>
+              {lastMovement.h}
+            </div>
+          </div>
+          <div className="highlightBox">
+            <div className="highlightLabel">ÚLTIMO</div>
+            <div className="highlightValue">{lastMovement.to}</div>
+          </div>
+          <div className="highlightBox">
+            <div className="highlightLabel">AH</div>
+            <div className="highlightValue" style={{ color: !lastIsH ? "#ffd000" : "#aaa" }}>
+              {lastMovement.ah}
+            </div>
+          </div>
+          <div className="highlightBox">
+            <div className="highlightLabel">RESULTADO</div>
+            <div className="highlightValue" style={{ color: getMovementColor(lastDistance) }}>
+              {lastDirection}/{lastDistance}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Grade 10x10 dos últimos 100 movimentos */}
+      <div className="movementGrid">
         {movements.length === 0 ? (
           <div className="movementEmpty">Insira números para ver o deslocamento</div>
         ) : (
           movements.map((mov, idx) => {
-            // Determinar qual sentido usar baseado no modo
             let distance: number;
             let direction: string;
             let isH: boolean;
@@ -68,18 +109,22 @@ export default function MovementPanel({
               distance = isH ? mov.h : mov.ah;
               direction = isH ? "H" : "A";
             } else {
-              // longest
               isH = mov.h >= mov.ah;
               distance = isH ? mov.h : mov.ah;
               direction = isH ? "H" : "A";
             }
 
             const color = getMovementColor(distance);
+            const isLatest = idx === 0;
 
             return (
-              <div key={idx} className="movementCard" style={{ borderLeftColor: color }}>
-                <div className="movementNum">{mov.to}</div>
-                <div className="movementDist" style={{ color }}>
+              <div
+                key={idx}
+                className={`movementGridCell ${isLatest ? "latest" : ""}`}
+                style={{ borderLeftColor: color }}
+              >
+                <div className="gridCellNum">{mov.to}</div>
+                <div className="gridCellDist" style={{ color }}>
                   {direction}/{distance}
                 </div>
               </div>
