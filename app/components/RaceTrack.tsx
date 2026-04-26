@@ -7,13 +7,12 @@ import { selClass } from "../lib/selection";
 type Pt = { x: number; y: number; angle: number };
 
 function buildTrackPoints(count: number): Pt[] {
-  // Aumentando a área útil para o Racetrack ocupar mais espaço
   const W = 900;
-  const H = 350; // Aumentado para dar mais altura
-  const padX = 50;
-  const padY = 50;
+  const H = 240;
+  const padX = 60;
+  const padY = 40;
 
-  const r = 100; // Raio maior para curvas mais abertas
+  const r = 80; 
   const left = padX;
   const right = W - padX;
   const top = padY;
@@ -72,7 +71,7 @@ export default function RaceTrack({
 }) {
   const pts = buildTrackPoints(WHEEL_EU.length);
   const viewW = 900;
-  const viewH = 350; // Sincronizado com buildTrackPoints
+  const viewH = 240;
 
   return (
     <div className="raceBox" aria-label="Race Profissional">
@@ -83,27 +82,29 @@ export default function RaceTrack({
           </filter>
         </defs>
 
-        {/* Base da Pista (Fundo) */}
+        {/* Fundo da Pista */}
         <path
-          d={`M 150,50 L 750,50 A 125,125 0 0 1 750,300 L 150,300 A 125,125 0 0 1 150,50 Z`}
-          fill="rgba(0,0,0,0.4)"
-          stroke="rgba(255,255,255,0.05)"
-          strokeWidth="60"
+          d="M 140,40 L 760,40 A 80,80 0 0 1 760,200 L 140,200 A 80,80 0 0 1 140,40 Z"
+          fill="rgba(0,0,0,0.6)"
+          stroke="rgba(255,255,255,0.1)"
+          strokeWidth="2"
         />
 
-        {/* Zonas de Texto Centrais - Maiores e mais visíveis */}
-        <text x="450" y="160" textAnchor="middle" fontSize="16" fontWeight="900" fill="rgba(255,255,255,0.15)" letterSpacing="4">
-          VOISINS DU ZÉRO
-        </text>
-        <text x="450" y="200" textAnchor="middle" fontSize="16" fontWeight="900" fill="rgba(255,255,255,0.15)" letterSpacing="4">
-          TIERS DU CYLINDRE
-        </text>
-        <text x="100" y="175" textAnchor="middle" fontSize="12" fontWeight="900" fill="rgba(255,255,255,0.1)" transform="rotate(-90, 100, 175)">
-          ORPHELINS
-        </text>
-        <text x="800" y="175" textAnchor="middle" fontSize="12" fontWeight="900" fill="rgba(255,255,255,0.1)" transform="rotate(90, 800, 175)">
-          ORPHELINS
-        </text>
+        {/* Linhas Divisórias de Zonas (Baseadas na imagem de referência) */}
+        {/* Divisória Tiers / Orphelins (Esquerda) */}
+        <line x1="320" y1="40" x2="360" y2="200" stroke="#3b82f6" strokeWidth="3" strokeOpacity="0.8" />
+        
+        {/* Divisória Orphelins / Voisins (Centro-Esquerda) */}
+        <line x1="500" y1="40" x2="480" y2="200" stroke="#f97316" strokeWidth="3" strokeOpacity="0.8" />
+        
+        {/* Divisória Voisins / Zero (Direita) */}
+        <path d="M 700,40 Q 750,120 700,200" fill="none" stroke="#eab308" strokeWidth="3" strokeOpacity="0.8" />
+
+        {/* Textos das Zonas */}
+        <text x="230" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">TIERS</text>
+        <text x="425" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">ORPHELINS</text>
+        <text x="590" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">VOISINS</text>
+        <text x="780" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">ZERO</text>
 
         {/* Números da Pista */}
         {WHEEL_EU.map((n, i) => {
@@ -123,38 +124,38 @@ export default function RaceTrack({
               style={{ cursor: "pointer" }}
               className="raceNode"
             >
-              {/* Célula de fundo - Maior para facilitar o clique */}
+              {/* Célula de fundo */}
               <rect
-                x={p.x - 22}
-                y={p.y - 28}
-                width="44"
-                height="56"
-                rx="6"
+                x={p.x - 20}
+                y={p.y - 26}
+                width="40"
+                height="52"
+                rx="4"
                 fill={fill}
                 stroke="rgba(255,255,255,0.2)"
-                strokeWidth="1.5"
+                strokeWidth="1"
                 transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 className="raceCell"
               />
               
               {/* Brilho superior */}
               <rect
-                x={p.x - 18}
-                y={p.y - 24}
-                width="36"
-                height="12"
-                rx="3"
-                fill="rgba(255,255,255,0.15)"
+                x={p.x - 16}
+                y={p.y - 22}
+                width="32"
+                height="10"
+                rx="2"
+                fill="rgba(255,255,255,0.1)"
                 transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 pointerEvents="none"
               />
 
-              {/* Número - Maior e mais nítido */}
+              {/* Número */}
               <text 
                 x={p.x} 
-                y={p.y + 7} 
+                y={p.y + 6} 
                 textAnchor="middle" 
-                fontSize="18" 
+                fontSize="16" 
                 fontWeight="1000" 
                 fill={textFill}
                 style={{ userSelect: 'none' }}
