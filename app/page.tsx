@@ -20,7 +20,6 @@ export default function Page() {
   const [history, setHistory] = useState<number[]>([]);
   const [sel, setSel] = useState(initSel());
   const [selMode, setSelMode] = useState<SelMode>("neighbors");
-  const [theme, setTheme] = useState<"light" | "dark">("light");
   const [showEaster99, setShowEaster99] = useState(false);
 
   // Estados para minimizar blocos
@@ -48,23 +47,12 @@ export default function Page() {
   }
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem("themeMode");
-      if (saved === "dark" || saved === "light") setTheme(saved);
-    } catch {}
-  }, []);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem("themeMode", theme);
-    } catch {}
+    // Forçar Dark Mode no HTML e Body
     if (typeof document !== "undefined") {
-      document.documentElement.classList.remove("theme-light", "theme-dark");
-      document.body.classList.remove("theme-light", "theme-dark");
-      document.documentElement.classList.add(theme === "dark" ? "theme-dark" : "theme-light");
-      document.body.classList.add(theme === "dark" ? "theme-dark" : "theme-light");
+      document.documentElement.classList.add("theme-dark");
+      document.body.classList.add("theme-dark");
     }
-  }, [theme]);
+  }, []);
 
   function addNumber(n: number) {
     setHistory((prev) => {
@@ -256,7 +244,7 @@ export default function Page() {
   const lastTen = history.slice(0, 10);
 
   return (
-    <div className={`app ${theme === "dark" ? "theme-dark" : "theme-light"}`}>
+    <div className="app theme-dark">
       {showEaster99 && (
         <div className="easterOverlay" onClick={() => setShowEaster99(false)}>
           <img src="/easter-99.gif" alt="Easter 99" />
@@ -314,9 +302,6 @@ export default function Page() {
           </select>
         </div>
 
-        <button className="btn btn-theme" onClick={() => setTheme((t) => (t === "light" ? "dark" : "light"))} title="Mudar tema claro/escuro">
-          {theme === "light" ? "🌙" : "☀️"}
-        </button>
         <button className="btn btn-reset" onClick={onResetAll}>RESET</button>
       </div>
 
@@ -489,7 +474,7 @@ export default function Page() {
         )}
       </div>
 
-      <div className="versionBadge">v2.3.0</div>
+      <div className="versionBadge">v2.4.0</div>
     </div>
   );
 }

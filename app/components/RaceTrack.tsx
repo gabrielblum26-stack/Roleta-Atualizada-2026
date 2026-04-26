@@ -7,12 +7,13 @@ import { selClass } from "../lib/selection";
 type Pt = { x: number; y: number; angle: number };
 
 function buildTrackPoints(count: number): Pt[] {
+  // Aumentando a área útil para o Racetrack ocupar mais espaço
   const W = 900;
-  const H = 200;
-  const padX = 60;
-  const padY = 40;
+  const H = 350; // Aumentado para dar mais altura
+  const padX = 50;
+  const padY = 50;
 
-  const r = 60; 
+  const r = 100; // Raio maior para curvas mais abertas
   const left = padX;
   const right = W - padX;
   const top = padY;
@@ -26,11 +27,9 @@ function buildTrackPoints(count: number): Pt[] {
   const midY = (top + bottom) / 2;
 
   function pointAt(s: number): Pt {
-    // 1) topo (esq->dir)
     if (s <= straightLen) return { x: left + r + s, y: top, angle: -Math.PI / 2 };
     s -= straightLen;
 
-    // 2) curva direita (topo->baixo)
     if (s <= arcLen) {
       const t = s / arcLen;
       const ang = (-Math.PI / 2) + t * Math.PI;
@@ -38,11 +37,9 @@ function buildTrackPoints(count: number): Pt[] {
     }
     s -= arcLen;
 
-    // 3) baixo (dir->esq)
     if (s <= straightLen) return { x: right - r - s, y: bottom, angle: Math.PI / 2 };
     s -= straightLen;
 
-    // 4) curva esquerda (baixo->topo)
     const t = s / arcLen;
     const ang = (Math.PI / 2) + t * Math.PI;
     return { x: left + r + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang };
@@ -75,49 +72,36 @@ export default function RaceTrack({
 }) {
   const pts = buildTrackPoints(WHEEL_EU.length);
   const viewW = 900;
-  const viewH = 200;
-
-  // Zonas clássicas
-  const zones = [
-    { label: "VOISINS DU ZÉRO", start: 22, end: 25, color: "rgba(255,255,255,0.05)" },
-    { label: "ORPHELINS", start: 1, end: 9, color: "rgba(255,255,255,0.05)" },
-    { label: "TIERS DU CYLINDRE", start: 27, end: 33, color: "rgba(255,255,255,0.05)" },
-    { label: "ORPHELINS", start: 17, end: 6, color: "rgba(255,255,255,0.05)" },
-  ];
+  const viewH = 350; // Sincronizado com buildTrackPoints
 
   return (
     <div className="raceBox" aria-label="Race Profissional">
       <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
         <defs>
           <filter id="premiumShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.4" />
+            <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.5" />
           </filter>
-          <linearGradient id="trackGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-            <stop offset="0%" stopColor="rgba(255,255,255,0.1)" />
-            <stop offset="100%" stopColor="rgba(0,0,0,0.2)" />
-          </linearGradient>
         </defs>
 
-        {/* Base da Pista */}
+        {/* Base da Pista (Fundo) */}
         <path
-          d="M 120,40 L 780,40 A 60,60 0 0 1 780,160 L 120,160 A 60,60 0 0 1 120,40 Z"
-          fill="rgba(0,0,0,0.3)"
-          stroke="rgba(255,255,255,0.1)"
-          strokeWidth="40"
-          strokeLinejoin="round"
+          d={`M 150,50 L 750,50 A 125,125 0 0 1 750,300 L 150,300 A 125,125 0 0 1 150,50 Z`}
+          fill="rgba(0,0,0,0.4)"
+          stroke="rgba(255,255,255,0.05)"
+          strokeWidth="60"
         />
 
-        {/* Zonas de Texto Centrais */}
-        <text x="450" y="95" textAnchor="middle" fontSize="10" fontWeight="900" fill="rgba(255,255,255,0.3)" letterSpacing="2">
+        {/* Zonas de Texto Centrais - Maiores e mais visíveis */}
+        <text x="450" y="160" textAnchor="middle" fontSize="16" fontWeight="900" fill="rgba(255,255,255,0.15)" letterSpacing="4">
           VOISINS DU ZÉRO
         </text>
-        <text x="450" y="115" textAnchor="middle" fontSize="10" fontWeight="900" fill="rgba(255,255,255,0.3)" letterSpacing="2">
+        <text x="450" y="200" textAnchor="middle" fontSize="16" fontWeight="900" fill="rgba(255,255,255,0.15)" letterSpacing="4">
           TIERS DU CYLINDRE
         </text>
-        <text x="120" y="105" textAnchor="middle" fontSize="8" fontWeight="900" fill="rgba(255,255,255,0.2)" transform="rotate(-90, 120, 105)">
+        <text x="100" y="175" textAnchor="middle" fontSize="12" fontWeight="900" fill="rgba(255,255,255,0.1)" transform="rotate(-90, 100, 175)">
           ORPHELINS
         </text>
-        <text x="780" y="105" textAnchor="middle" fontSize="8" fontWeight="900" fill="rgba(255,255,255,0.2)" transform="rotate(90, 780, 105)">
+        <text x="800" y="175" textAnchor="middle" fontSize="12" fontWeight="900" fill="rgba(255,255,255,0.1)" transform="rotate(90, 800, 175)">
           ORPHELINS
         </text>
 
@@ -130,7 +114,6 @@ export default function RaceTrack({
           const fill = override ?? `var(--${base})`;
           const textFill = needsDarkText(scls) ? "#111" : "#fff";
 
-          // Rotação do marcador para alinhar com a pista
           const rotation = (p.angle * 180) / Math.PI + 90;
 
           return (
@@ -140,38 +123,38 @@ export default function RaceTrack({
               style={{ cursor: "pointer" }}
               className="raceNode"
             >
-              {/* Célula de fundo */}
+              {/* Célula de fundo - Maior para facilitar o clique */}
               <rect
-                x={p.x - 18}
-                y={p.y - 22}
-                width="36"
-                height="44"
-                rx="4"
+                x={p.x - 22}
+                y={p.y - 28}
+                width="44"
+                height="56"
+                rx="6"
                 fill={fill}
-                stroke="rgba(255,255,255,0.15)"
-                strokeWidth="1"
+                stroke="rgba(255,255,255,0.2)"
+                strokeWidth="1.5"
                 transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 className="raceCell"
               />
               
-              {/* Brilho superior da célula */}
+              {/* Brilho superior */}
               <rect
-                x={p.x - 16}
-                y={p.y - 20}
-                width="32"
-                height="10"
-                rx="2"
-                fill="rgba(255,255,255,0.1)"
+                x={p.x - 18}
+                y={p.y - 24}
+                width="36"
+                height="12"
+                rx="3"
+                fill="rgba(255,255,255,0.15)"
                 transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 pointerEvents="none"
               />
 
-              {/* Número */}
+              {/* Número - Maior e mais nítido */}
               <text 
                 x={p.x} 
-                y={p.y + 5} 
+                y={p.y + 7} 
                 textAnchor="middle" 
-                fontSize="14" 
+                fontSize="18" 
                 fontWeight="1000" 
                 fill={textFill}
                 style={{ userSelect: 'none' }}
