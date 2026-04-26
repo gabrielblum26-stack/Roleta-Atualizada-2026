@@ -5,6 +5,7 @@ import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { RepHighlight } from "./components/TableMap";
 import NeighborsBlock from "./components/NeighborsBlock";
+import RaceDistBlock from "./components/RaceDistBlock";
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER } from "./lib/selection";
 import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
@@ -303,7 +304,7 @@ export default function Page() {
         <button className="btn btn-reset" onClick={onResetAll}>RESET</button>
       </div>
 
-      <div className="panel lastStrip" aria-label="Últimos números (curto)">
+      <div className="panel lastStrip" aria-label="Últimos números">
         {history.slice(0, SHORT_N).map((n, i) => (
           <div
             key={`${n}-${i}`}
@@ -389,7 +390,10 @@ export default function Page() {
             A seleção substitui a cor do chip. “RESET DE CORES” limpa as marcações.
           </div>
         </div>
-        <NeighborsBlock history={lastTen} sel={sel} onPick={onSelect} />
+        <div className="middleCols">
+          <NeighborsBlock history={lastTen} sel={sel} onPick={onSelect} />
+          <RaceDistBlock history={lastTen} sel={sel} onPick={onSelect} />
+        </div>
         <div className="panel right">
           <RaceTrack sel={sel} onPick={onSelect} />
           <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />

@@ -1,6 +1,6 @@
 "use client";
 
-import { colorOf, neighborsEU, wheelDistance } from "../lib/roulette";
+import { colorOf, neighborsEU } from "../lib/roulette";
 import { selClass, type SelState } from "../lib/selection";
 
 type Props = {
@@ -140,55 +140,6 @@ export default function NeighborsBlock({ history, sel, onPick, max = 10 }: Props
                     selClass={typeof d === "number" ? selClass(sel, d) : ""}
                     clickable
                   />
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* NOVA ESTRUTURA: AH | ATUAL | ANTES | H */}
-        <div className="nbCol nbRaceDist">
-          <div className="nbTripleHeader">
-            <ColTitle>AH</ColTitle>
-            <ColTitle>ATUAL</ColTitle>
-            <ColTitle>ANTES</ColTitle>
-            <ColTitle>H</ColTitle>
-          </div>
-          <div className="nbStack">
-            {Array.from({ length: max }).map((_, idx) => {
-              const current = history[idx];
-              const before = history[idx + 1];
-              
-              if (typeof current !== "number" || typeof before !== "number") {
-                return (
-                  <div className="nbRaceRow" key={idx}>
-                    <Mini value={null} tone="neutral" neutral />
-                    <Mini value={null} tone="colored" />
-                    <Mini value={null} tone="colored" />
-                    <Mini value={null} tone="neutral" neutral />
-                  </div>
-                );
-              }
-
-              const dist = wheelDistance(before, current);
-              return (
-                <div className="nbRaceRow" key={idx}>
-                  <Mini value={dist.ah} tone="neutral" neutral />
-                  <Mini 
-                    value={current} 
-                    tone="colored" 
-                    actualColor={colorOf(current)} 
-                    clickable 
-                    selClass={selClass(sel, current)} 
-                  />
-                  <Mini 
-                    value={before} 
-                    tone="colored" 
-                    actualColor={colorOf(before)} 
-                    clickable 
-                    selClass={selClass(sel, before)} 
-                  />
-                  <Mini value={dist.h} tone="neutral" neutral />
                 </div>
               );
             })}
