@@ -52,6 +52,30 @@ export default function Page() {
     if (history.length > 0 && history[0] === 99) triggerEaster99();
   }, [history]);
 
+  useEffect(() => {
+    // Escutar números vindos da janela Keyboard
+    const bc = new BroadcastChannel("roulette_keyboard");
+    bc.onmessage = (event) => {
+      if (event.data.type === "ADD_NUMBER") {
+        addNumber(event.data.value);
+      }
+    };
+    return () => bc.close();
+  }, []);
+
+  const openKeyboard = () => {
+    const width = 500;
+    const height = 600;
+    const left = window.screen.width - width - 50;
+    const top = 100;
+    
+    window.open(
+      "/keyboard",
+      "RouletteKeyboard",
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+    );
+  };
+
   const longGridItems = useMemo(() => {
     const arr: (number | null)[] = [];
     for (let i = 0; i < LONG_N; i++) arr.push(history[i] ?? null);
@@ -81,10 +105,17 @@ export default function Page() {
     return set;
   }, [history]);
 
+  function addNumber(n: number) {
+    setHistory((prev) => {
+      const next = [n, ...prev];
+      return next.slice(0, LONG_N);
+    });
+  }
+
   function onSend() {
     const nums = parseInput(raw);
     if (nums.length > 0) {
-      setHistory([...nums, ...history]);
+      nums.forEach(addNumber);
       setRaw("");
     }
   }
@@ -156,6 +187,9 @@ export default function Page() {
         <button className="btn btn-undo" onClick={onUndoLast}>APAGAR</button>
         <button className="btn btn-colors" onClick={onResetColors} title="Limpa apenas seleções">
           RESET DE CORES
+        </button>
+        <button className="btn btn-keyboard" onClick={openKeyboard} style={{ background: "#9333ea", color: "#fff" }}>
+          KEYBOARD
         </button>
 
         <div className="colorPicker">
