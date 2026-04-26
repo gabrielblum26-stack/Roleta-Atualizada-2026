@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
 import RaceTrack from "./components/RaceTrack";
-import TableMap, { RepHighlight } from "./components/TableMap";
+import TableMap, { type RepHighlight } from "./components/TableMap";
 import NeighborsBlock from "./components/NeighborsBlock";
 import RaceDistBlock from "./components/RaceDistBlock";
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER } from "./lib/selection";
@@ -49,46 +49,51 @@ export default function Page() {
   }
 
   useEffect(() => {
-    // Forçar Dark Mode no HTML e Body
-    if (typeof document !== "undefined") {
-      document.documentElement.classList.add("theme-dark");
-      document.body.classList.add("theme-dark");
-    }
-  }, []);
+    if (history.length > 0 && history[0] === 99) triggerEaster99();
+  }, [history]);
 
-  function addNumber(n: number) {
-    setHistory((prev) => {
-      const next = [n, ...prev];
-      return next.slice(0, LONG_N);
-    });
-  }
+  const longGridItems = useMemo(() => {
+    const arr: (number | null)[] = [];
+    for (let i = 0; i < LONG_N; i++) arr.push(history[i] ?? null);
+    return arr;
+  }, [history]);
+
+  const lastTen = useMemo(() => history.slice(0, 10), [history]);
+
+  const repHighlights = useMemo((): Set<RepHighlight> => {
+    return new Set();
+  }, [lastTen]);
+
+  const disguisedPairIdx = useMemo(() => {
+    const set = new Set<number>();
+    for (let i = 0; i < history.length - 1; i++) {
+      const a = history[i];
+      const b = history[i + 1];
+      if (a !== undefined && b !== undefined) {
+        const aRoot = a === 28 ? 0 : 1 + ((a - 1) % 9);
+        const bRoot = b === 28 ? 0 : 1 + ((b - 1) % 9);
+        if (aRoot === bRoot && a !== b) {
+          set.add(i);
+          set.add(i + 1);
+        }
+      }
+    }
+    return set;
+  }, [history]);
 
   function onSend() {
-    const parts = raw.split(/[,\s]+/).map((s) => s.trim()).filter(Boolean);
-    if (parts.length === 0) return;
-    let didSomething = false;
-    for (const p of parts) {
-      const n = Number(p);
-      if (!Number.isFinite(n)) continue;
-      if (n === 99) {
-        triggerEaster99();
-        didSomething = true;
-        continue;
-      }
-      if (Number.isInteger(n) && n >= 0 && n <= 36) {
-        addNumber(n);
-        didSomething = true;
-      }
+    const nums = parseInput(raw);
+    if (nums.length > 0) {
+      setHistory([...nums, ...history]);
+      setRaw("");
     }
-    if (didSomething) setRaw("");
   }
 
   function onUndoLast() {
-    setHistory((prev) => (prev.length ? prev.slice(1) : prev));
+    if (history.length > 0) setHistory(history.slice(1));
   }
 
   function onResetAll() {
-    setRaw("");
     setHistory([]);
     setSel(initSel());
   }
@@ -108,145 +113,24 @@ export default function Page() {
   const streaks = useMemo(() => computeStreaks(history), [history]);
   const terminals = useMemo(() => computeTerminals(history), [history]);
 
-  const repHighlights = useMemo(() => {
-    const s = new Set<RepHighlight>();
-    if (streaks.color.count >= 2) {
-      if (streaks.color.key === "red") s.add("red");
-      if (streaks.color.key === "black") s.add("black");
-    }
-    if (streaks.parity.count >= 2) {
-      if (streaks.parity.key === "even") s.add("even");
-      if (streaks.parity.key === "odd") s.add("odd");
-    }
-    if (streaks.half.count >= 2) {
-      if (streaks.half.key === "low") s.add("low");
-      if (streaks.half.key === "high") s.add("high");
-    }
-    if (streaks.dozen.count >= 2) {
-      if (streaks.dozen.key === 1) s.add("dozen1");
-      if (streaks.dozen.key === 2) s.add("dozen2");
-      if (streaks.dozen.key === 3) s.add("dozen3");
-    }
-    if (streaks.column.count >= 2) {
-      if (streaks.column.key === 1) s.add("col1");
-      if (streaks.column.key === 2) s.add("col2");
-      if (streaks.column.key === 3) s.add("col3");
-    }
-    return s;
-  }, [streaks]);
-
-  const longGridItems = useMemo(() => {
-    const arr: (number | null)[] = [];
-    for (let i = 0; i < LONG_N; i++) arr.push(history[i] ?? null);
-    return arr;
-  }, [history]);
+  const selChipClass = (n: number) => selClass(sel, n);
 
   const topZonePattern = useMemo(() => {
-    const chrono = [...history].reverse();
-    const digitalRoot = (n: number) => {
-      const a = Math.abs(n);
-      if (a === 0) return 0;
-      return 1 + ((a - 1) % 9);
+    if (history.length === 0) return null;
+    const last = history[0];
+    const count = history.filter((x) => x === last).length;
+    return {
+      xExample: last,
+      count,
+      triggerKind: "T" as const,
+      triggerLabel: `Terminal ${last % 10}`,
+      triggerMembers: [],
+      zones9: [last],
     };
-    const disguisedKey = (n: number) => (n === 28 ? 0 : digitalRoot(n));
-    const allNums = Array.from({ length: 37 }, (_, n) => n);
-    const membersOfTerminal = (t: number) => allNums.filter((n) => n % 10 === t);
-    const membersOfDisfar = (s: number) => allNums.filter((n) => disguisedKey(n) === s);
-    type Trigger = { kind: "N" | "T" | "D" | "S"; id: string; label: string; members: number[] };
-    const triggersFor = (x: number): Trigger[] => {
-      const t = x % 10;
-      const d = disguisedKey(x);
-      const list: Trigger[] = [
-        { kind: "N", id: `N:${x}`, label: `X ${x}`, members: [x] },
-        { kind: "T", id: `T:${t}`, label: `Terminal ${t}`, members: membersOfTerminal(t) },
-        { kind: "D", id: `D:${d}`, label: `Disfarçado ${d}`, members: membersOfDisfar(d) },
-      ];
-      if (d === x) list.push({ kind: "S", id: `S:${x}`, label: `Seco ${String(x).padStart(2, "0")}`, members: [x] });
-      return list;
-    };
-    type Pattern = {
-      triggerLabel: string;
-      triggerKind: Trigger["kind"];
-      triggerMembers: number[];
-      xExample: number;
-      count: number;
-      setNums: number[];
-      zones9: number[];
-    };
-    const counts = new Map<string, Pattern>();
-    const zoneOf = (n: number) => {
-      const nb = neighborsEU(n);
-      return [nb.prev, n, nb.next] as [number, number, number];
-    };
-    for (let i = 0; i + 3 < chrono.length; i++) {
-      const x = chrono[i];
-      const w1 = chrono[i + 1];
-      const w2 = chrono[i + 2];
-      const w3 = chrono[i + 3];
-      if (x === undefined || w1 === undefined || w2 === undefined || w3 === undefined) continue;
-      const z1 = zoneOf(w1);
-      const z2 = zoneOf(w2);
-      const z3 = zoneOf(w3);
-      const set = new Set<number>([...z1, ...z2, ...z3]);
-      const setNums = Array.from(set).sort((a, b) => a - b);
-      const setKey = setNums.join("-");
-      for (const tr of triggersFor(x)) {
-        const key = `${tr.id}|${setKey}`;
-        const prev = counts.get(key);
-        if (prev) prev.count += 1;
-        else
-          counts.set(key, {
-            triggerLabel: tr.label,
-            triggerKind: tr.kind,
-            triggerMembers: tr.members,
-            xExample: x,
-            count: 1,
-            setNums,
-            zones9: [...z1, ...z2, ...z3],
-          });
-      }
-    }
-    const repeated = Array.from(counts.values()).filter((p) => p.count > 1);
-    if (repeated.length === 0) return null;
-    const kindRank = (k: Pattern["triggerKind"]) => (k === "T" || k === "D" || k === "S" ? 0 : 1);
-    repeated.sort((a, b) => {
-      if (b.count !== a.count) return b.count - a.count;
-      const ca = a.setNums.length;
-      const cb = b.setNums.length;
-      if (ca !== cb) return ca - cb;
-      const ka = kindRank(a.triggerKind);
-      const kb = kindRank(b.triggerKind);
-      if (ka !== kb) return ka - kb;
-      return a.triggerLabel.localeCompare(b.triggerLabel);
-    });
-    return repeated[0];
   }, [history]);
-
-  const disguisedKey = (n: number) => {
-    if (n === 28) return 0;
-    const a = Math.abs(n);
-    if (a === 0) return 0;
-    return 1 + ((a - 1) % 9);
-  };
-
-  const disguisedPairIdx = useMemo(() => {
-    const marked = new Set<number>();
-    for (let i = 0; i + 1 < history.length; i++) {
-      const a = history[i];
-      const b = history[i + 1];
-      if (disguisedKey(a) === disguisedKey(b)) {
-        marked.add(i);
-        marked.add(i + 1);
-      }
-    }
-    return marked;
-  }, [history]);
-
-  const selChipClass = (n: number) => selClass(sel, n);
-  const lastTen = history.slice(0, 10);
 
   return (
-    <div className="app theme-dark">
+    <div className="app">
       {showEaster99 && (
         <div className="easterOverlay" onClick={() => setShowEaster99(false)}>
           <img src="/easter-99.gif" alt="Easter 99" />
@@ -321,78 +205,71 @@ export default function Page() {
             Acumulada
           </button>
         </div>
+
         <button className="btn btn-reset" onClick={onResetAll}>RESET</button>
       </div>
 
       <div className="panel lastStrip" aria-label="Últimos números">
-        {history.slice(0, SHORT_N).map((n, i) => (
+        {lastTen.map((n, idx) => (
           <div
-            key={`${n}-${i}`}
+            key={idx}
             className={`chip ${colorOf(n)} ${selChipClass(n)}`}
             onClick={() => onSelect(n)}
-            title="Clique para selecionar (não registra)"
+            title="Clique para selecionar"
           >
             {n}
           </div>
         ))}
       </div>
 
-      <div className={`panel zoneStrip ${minimized.zone ? "minimized" : ""}`} aria-label="Padrão de zona (top)">
-        <div className="panelHeader">
-          <div className="zoneTitle">Padrão de Zona (Top)</div>
-          <button className="btn-min" onClick={() => toggleMin("zone")}>{minimized.zone ? "+" : "−"}</button>
-        </div>
-        {!minimized.zone && (
-          <>
-            {!topZonePattern ? (
-              <div className="zoneEmpty">Sem padrão repetido ainda (precisa de X + 3 giros depois, repetindo &gt; 1)</div>
-            ) : (
-              <div className="zoneWrap">
-                <div className="zoneHead">
-                  <div
-                    className={`chip ${colorOf(topZonePattern.xExample)} ${selChipClass(topZonePattern.xExample)}`}
-                    onClick={() => onSelect(topZonePattern.xExample)}
-                    title="X exemplo (clique seleciona)"
-                  >
-                    {topZonePattern.triggerKind === "T"
-                      ? topZonePattern.triggerLabel.replace("Terminal ", "")
-                      : topZonePattern.triggerKind === "D"
-                      ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
-                      : topZonePattern.triggerKind === "S"
-                      ? topZonePattern.triggerLabel.replace("Seco ", "")
-                      : topZonePattern.xExample}
-                  </div>
-                  <div className="zoneMeta">
-                    <div className="zoneCount">{topZonePattern.count}x</div>
-                    <div className="zoneBadges">
-                      <span className="zb">{topZonePattern.triggerLabel}</span>
-                      {topZonePattern.triggerMembers.length > 1 && (
-                        <span className="zb">{topZonePattern.triggerMembers.join(", ")}</span>
-                      )}
-                    </div>
-                  </div>
+      {topZonePattern && (
+        <div className="panel zoneStrip" aria-label="Padrão de zona (Top)">
+          {topZonePattern && (
+            <div className="zone3">
+              <div className="zoneHead">
+                <div
+                  className={`chip ${colorOf(topZonePattern.xExample)} ${selChipClass(topZonePattern.xExample)}`}
+                  onClick={() => onSelect(topZonePattern.xExample)}
+                  title="X exemplo (clique seleciona)"
+                >
+                  {topZonePattern.triggerKind === "T"
+                    ? topZonePattern.triggerLabel.replace("Terminal ", "")
+                    : topZonePattern.triggerKind === "D"
+                    ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
+                    : topZonePattern.triggerKind === "S"
+                    ? topZonePattern.triggerLabel.replace("Seco ", "")
+                    : topZonePattern.xExample}
                 </div>
-                <div className="zoneZones">
-                  {[0, 3, 6].map((off) => (
-                    <div key={off} className="zone3">
-                      {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
-                        <div
-                          key={idx}
-                          className={`chip chipSmall ${colorOf(n)} ${selChipClass(n)}`}
-                          onClick={() => onSelect(n)}
-                          title="Número da zona (clique seleciona)"
-                        >
-                          {n}
-                        </div>
-                      ))}
-                    </div>
-                  ))}
+                <div className="zoneMeta">
+                  <div className="zoneCount">{topZonePattern.count}x</div>
+                  <div className="zoneBadges">
+                    <span className="zb">{topZonePattern.triggerLabel}</span>
+                    {topZonePattern.triggerMembers.length > 1 && (
+                      <span className="zb">{topZonePattern.triggerMembers.join(", ")}</span>
+                    )}
+                  </div>
                 </div>
               </div>
-            )}
-          </>
-        )}
-      </div>
+              <div className="zoneZones">
+                {[0, 3, 6].map((off) => (
+                  <div key={off} className="zone3">
+                    {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
+                      <div
+                        key={idx}
+                        className={`chip chipSmall ${colorOf(n)} ${selChipClass(n)}`}
+                        onClick={() => onSelect(n)}
+                        title="Número da zona (clique seleciona)"
+                      >
+                        {n}
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="main">
         <div className={`panel left ${minimized.history ? "minimized" : ""}`}>
@@ -419,7 +296,7 @@ export default function Page() {
               </div>
               <div className="hint">
                 Entrada só pelo input. Clique em número seleciona N e vizinhos (ou outro modo) com a cor ativa.
-                A seleção substitui a cor do chip. “RESET DE CORES” limpa as marcações.
+                A seleção substitui a cor do chip. "RESET DE CORES" limpa as marcações.
               </div>
             </>
           )}
@@ -435,13 +312,7 @@ export default function Page() {
             />
           </div>
           <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
-            <RaceDistBlock 
-              history={lastTen} 
-              sel={sel} 
-              onPick={onSelect} 
-              isMinimized={minimized.raceDist}
-              onToggle={() => toggleMin("raceDist")}
-            />
+            <MovementPanel history={history} />
           </div>
         </div>
         <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>
@@ -453,7 +324,13 @@ export default function Page() {
             <>
               <RaceTrack sel={sel} onPick={onSelect} />
               <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
-              <MovementPanel history={history} />
+              <RaceDistBlock 
+                history={lastTen} 
+                sel={sel} 
+                onPick={onSelect} 
+                isMinimized={false}
+                onToggle={() => {}}
+              />
             </>
           )}
         </div>
@@ -494,7 +371,7 @@ export default function Page() {
         )}
       </div>
 
-      <div className="versionBadge">v2.4.0</div>
+      <div className="versionBadge">v2.5.0</div>
     </div>
   );
 }
