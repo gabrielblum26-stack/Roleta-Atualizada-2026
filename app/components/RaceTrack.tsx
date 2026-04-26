@@ -8,11 +8,11 @@ type Pt = { x: number; y: number; angle: number };
 
 function buildTrackPoints(count: number): Pt[] {
   const W = 900;
-  const H = 240;
+  const H = 200; // Reduzido para remover espaço vazio vertical
   const padX = 60;
-  const padY = 40;
+  const padY = 30; // Reduzido
 
-  const r = 80; 
+  const r = 70; // Ajustado para a nova altura
   const left = padX;
   const right = W - padX;
   const top = padY;
@@ -71,11 +71,11 @@ export default function RaceTrack({
 }) {
   const pts = buildTrackPoints(WHEEL_EU.length);
   const viewW = 900;
-  const viewH = 240;
+  const viewH = 200; // Sincronizado com buildTrackPoints
 
   return (
     <div className="raceBox" aria-label="Race Profissional">
-      <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="auto" preserveAspectRatio="xMidYMid meet">
         <defs>
           <filter id="premiumShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.5" />
