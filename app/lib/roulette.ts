@@ -71,6 +71,7 @@ export function wheelStepEU(n: number, delta: number): number {
  * Calcula a distância entre dois números na roleta.
  * H (Horário): passos de 'from' para 'to' movendo para a direita no array WHEEL_EU.
  * AH (Anti-Horário): passos de 'from' para 'to' movendo para a esquerda no array WHEEL_EU.
+ * Ajuste: Subtrai 1 do resultado para não contar a casa do número atual (destino).
  */
 export function wheelDistance(from: number, to: number): { h: number; ah: number } {
   const idxFrom = WHEEL_EU.indexOf(from);
@@ -78,7 +79,14 @@ export function wheelDistance(from: number, to: number): { h: number; ah: number
   if (idxFrom < 0 || idxTo < 0) return { h: 0, ah: 0 };
 
   const L = WHEEL_EU.length;
-  const h = (idxTo - idxFrom + L) % L;
-  const ah = (idxFrom - idxTo + L) % L;
+  
+  // Distância bruta (incluindo a casa de destino)
+  let h = (idxTo - idxFrom + L) % L;
+  let ah = (idxFrom - idxTo + L) % L;
+  
+  // Ajuste: se a distância for maior que 0, subtrai 1 para não contar a casa do atual
+  if (h > 0) h = h - 1;
+  if (ah > 0) ah = ah - 1;
+  
   return { h, ah };
 }
