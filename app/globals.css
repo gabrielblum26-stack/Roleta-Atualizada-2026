@@ -243,13 +243,13 @@ input[type="text"]{
 .right{
   padding:10px;
   overflow:hidden;
-  display:grid;
-  grid-template-rows: 210px 1fr;
+  display:flex;
+  flex-direction:column;
   gap:10px;
 }
 
 .right.minimized {
-  grid-template-rows: auto;
+  flex: 0 0 auto;
 }
 
 .raceBox{
@@ -261,6 +261,14 @@ input[type="text"]{
   display:flex;
   align-items:center;
   justify-content:center;
+  min-height: 180px;
+  flex: 1;
+}
+
+.raceBox svg {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
 }
 
 .mapBox{
@@ -269,13 +277,15 @@ input[type="text"]{
   border-radius:16px;
   padding:8px;
   overflow:hidden;
+  flex: 1.5;
+  min-height: 200px;
 }
 
 .table{
   height:100%;
   display:grid;
   grid-template-columns: 52px repeat(12, 1fr) 52px;
-  grid-template-rows: repeat(3, 44px) 38px 38px;
+  grid-template-rows: repeat(3, 1fr) auto auto;
   gap:5px;
 }
 
@@ -306,6 +316,7 @@ input[type="text"]{
   letter-spacing:.4px;
   font-size:12px;
   position:relative;
+  padding: 8px 0;
 }
 
 .bet.rep::after{
@@ -390,7 +401,6 @@ input[type="text"]{
 
 @media (max-width: 1200px){
   .main{ grid-template-columns: 1fr 1.8fr 1.2fr; }
-  .right{ grid-template-rows: 170px 1fr; }
   .terminalsGrid{ grid-template-columns: repeat(5, 1fr); }
   .repsGrid{ grid-template-columns: repeat(6, 1fr); }
 }
@@ -438,21 +448,28 @@ input[type="text"]{
 .nbEmpty{ opacity:.55; }
 .nbClickable{ cursor:pointer; }
 
-/* RaceDist */
+/* RaceDist - Ajuste de Alinhamento */
 .rdGrid {
   display: flex;
   flex-direction: column;
+  width: 100%;
 }
 .rdHeader {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.8fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 6px;
+  text-align: center;
 }
 .rdRow {
   display: grid;
-  grid-template-columns: 0.8fr 1fr 1fr 0.8fr;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
+  margin-bottom: 8px;
+}
+.rdRow .nbMini {
+  width: 100%;
+  font-size: 12px;
 }
 
 /* Tema escuro */
