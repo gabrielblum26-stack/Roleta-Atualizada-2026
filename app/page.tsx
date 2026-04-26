@@ -21,6 +21,7 @@ export default function Page() {
   const [history, setHistory] = useState<number[]>([]);
   const [sel, setSel] = useState(initSel());
   const [selMode, setSelMode] = useState<SelMode>("neighbors");
+  const [markingMode, setMarkingMode] = useState<"unique" | "cumulative">("cumulative");
   const [showEaster99, setShowEaster99] = useState(false);
 
   // Estados para minimizar blocos
@@ -97,7 +98,7 @@ export default function Page() {
   }
 
   function onSelect(n: number) {
-    setSel((prev) => applyClick(prev, n, selMode));
+    setSel((prev) => applyClick(prev, n, selMode, markingMode));
   }
 
   function onColorChange(index: number) {
@@ -303,6 +304,23 @@ export default function Page() {
           </select>
         </div>
 
+        <div className="markingModeWrap" title="Alterna entre marcacao unica e acumulada">
+          <span className="markingLabel">MARCACAO</span>
+          <button
+            className={`markingBtn ${markingMode === "unique" ? "active" : ""}`}
+            onClick={() => setMarkingMode("unique")}
+            title="Cada clique limpa a cor anterior"
+          >
+            Unica
+          </button>
+          <button
+            className={`markingBtn ${markingMode === "cumulative" ? "active" : ""}`}
+            onClick={() => setMarkingMode("cumulative")}
+            title="Cliques acumulam na mesma cor"
+          >
+            Acumulada
+          </button>
+        </div>
         <button className="btn btn-reset" onClick={onResetAll}>RESET</button>
       </div>
 

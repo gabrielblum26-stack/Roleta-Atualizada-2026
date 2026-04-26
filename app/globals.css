@@ -603,3 +603,50 @@ input[type="text"]{
   text-align: center;
   width: 100%;
 }
+
+
+/* Marking Mode Selector */
+.markingModeWrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  border: 1px solid #333;
+  background: rgba(255,255,255,.05);
+  margin-left: 8px;
+}
+
+.markingLabel {
+  font-weight: 900;
+  color: #aaa;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .3px;
+}
+
+.markingBtn {
+  background: rgba(255,255,255,.08);
+  border: 1px solid #444;
+  color: #aaa;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-weight: 900;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: .2px;
+}
+
+.markingBtn:hover {
+  color: #fff;
+  background: rgba(255,255,255,.12);
+}
+
+.markingBtn.active {
+  background: #3b82f6;
+  color: #fff;
+  border-color: #2563eb;
+  box-shadow: 0 0 12px rgba(59,130,246,.4);
+}
