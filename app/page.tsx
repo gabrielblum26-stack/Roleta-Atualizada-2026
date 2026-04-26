@@ -11,6 +11,7 @@ import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
 import { TerminalCard } from "./components/TerminalCard";
 import { Metric } from "./components/Metric";
+import MovementPanel from "./components/MovementPanel";
 
 const SHORT_N = 20;
 const LONG_N = 150;
@@ -434,6 +435,7 @@ export default function Page() {
             <>
               <RaceTrack sel={sel} onPick={onSelect} />
               <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
+              <MovementPanel history={history} />
             </>
           )}
         </div>
