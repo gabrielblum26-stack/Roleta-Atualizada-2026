@@ -13,15 +13,30 @@ import { TerminalCard } from "./components/TerminalCard";
 import { Metric } from "./components/Metric";
 
 const SHORT_N = 20;
-const LONG_N = 150; // ajustado para caber com o bloco de vizinhos (sem scroll)
+const LONG_N = 150;
 
 export default function Page() {
   const [raw, setRaw] = useState("");
-  const [history, setHistory] = useState<number[]>([]); // mais recente primeiro
+  const [history, setHistory] = useState<number[]>([]);
   const [sel, setSel] = useState(initSel());
   const [selMode, setSelMode] = useState<SelMode>("neighbors");
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [showEaster99, setShowEaster99] = useState(false);
+
+  // Estados para minimizar blocos
+  const [minimized, setMinimized] = useState({
+    history: false,
+    neighbors: false,
+    raceDist: false,
+    trackMap: false,
+    terminals: false,
+    reps: false,
+    zone: false
+  });
+
+  const toggleMin = (key: keyof typeof minimized) => {
+    setMinimized(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   function triggerEaster99() {
     if (typeof window === "undefined") return;
@@ -317,106 +332,160 @@ export default function Page() {
         ))}
       </div>
 
-      <div className="panel zoneStrip" aria-label="Padrão de zona (top)">
-        <div className="zoneTitle">Padrão de Zona (Top)</div>
-        {!topZonePattern ? (
-          <div className="zoneEmpty">Sem padrão repetido ainda (precisa de X + 3 giros depois, repetindo &gt; 1)</div>
-        ) : (
-          <div className="zoneWrap">
-            <div className="zoneHead">
-              <div
-                className={`chip ${colorOf(topZonePattern.xExample)} ${selChipClass(topZonePattern.xExample)}`}
-                onClick={() => onSelect(topZonePattern.xExample)}
-                title="X exemplo (clique seleciona)"
-              >
-                {topZonePattern.triggerKind === "T"
-                  ? topZonePattern.triggerLabel.replace("Terminal ", "")
-                  : topZonePattern.triggerKind === "D"
-                  ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
-                  : topZonePattern.triggerKind === "S"
-                  ? topZonePattern.triggerLabel.replace("Seco ", "")
-                  : topZonePattern.xExample}
-              </div>
-              <div className="zoneMeta">
-                <div className="zoneCount">{topZonePattern.count}x</div>
-                <div className="zoneBadges">
-                  <span className="zb">{topZonePattern.triggerLabel}</span>
-                  {topZonePattern.triggerMembers.length > 1 && (
-                    <span className="zb">{topZonePattern.triggerMembers.join(", ")}</span>
-                  )}
+      <div className={`panel zoneStrip ${minimized.zone ? "minimized" : ""}`} aria-label="Padrão de zona (top)">
+        <div className="panelHeader">
+          <div className="zoneTitle">Padrão de Zona (Top)</div>
+          <button className="btn-min" onClick={() => toggleMin("zone")}>{minimized.zone ? "+" : "−"}</button>
+        </div>
+        {!minimized.zone && (
+          <>
+            {!topZonePattern ? (
+              <div className="zoneEmpty">Sem padrão repetido ainda (precisa de X + 3 giros depois, repetindo &gt; 1)</div>
+            ) : (
+              <div className="zoneWrap">
+                <div className="zoneHead">
+                  <div
+                    className={`chip ${colorOf(topZonePattern.xExample)} ${selChipClass(topZonePattern.xExample)}`}
+                    onClick={() => onSelect(topZonePattern.xExample)}
+                    title="X exemplo (clique seleciona)"
+                  >
+                    {topZonePattern.triggerKind === "T"
+                      ? topZonePattern.triggerLabel.replace("Terminal ", "")
+                      : topZonePattern.triggerKind === "D"
+                      ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
+                      : topZonePattern.triggerKind === "S"
+                      ? topZonePattern.triggerLabel.replace("Seco ", "")
+                      : topZonePattern.xExample}
+                  </div>
+                  <div className="zoneMeta">
+                    <div className="zoneCount">{topZonePattern.count}x</div>
+                    <div className="zoneBadges">
+                      <span className="zb">{topZonePattern.triggerLabel}</span>
+                      {topZonePattern.triggerMembers.length > 1 && (
+                        <span className="zb">{topZonePattern.triggerMembers.join(", ")}</span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-            <div className="zoneZones">
-              {[0, 3, 6].map((off) => (
-                <div key={off} className="zone3">
-                  {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
-                    <div
-                      key={idx}
-                      className={`chip chipSmall ${colorOf(n)} ${selChipClass(n)}`}
-                      onClick={() => onSelect(n)}
-                      title="Número da zona (clique seleciona)"
-                    >
-                      {n}
+                <div className="zoneZones">
+                  {[0, 3, 6].map((off) => (
+                    <div key={off} className="zone3">
+                      {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
+                        <div
+                          key={idx}
+                          className={`chip chipSmall ${colorOf(n)} ${selChipClass(n)}`}
+                          onClick={() => onSelect(n)}
+                          title="Número da zona (clique seleciona)"
+                        >
+                          {n}
+                        </div>
+                      ))}
                     </div>
                   ))}
                 </div>
-              ))}
-            </div>
-          </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
       <div className="main">
-        <div className="panel left">
-          <div className="sectionTitle">Histórico (150)</div>
-          <div className="longGrid" aria-label="Histórico longo">
-            {longGridItems.map((n, idx) => {
-              if (n === null) return <div key={idx} className="longCell empty" />;
-              return (
-                <div
-                  key={idx}
-                  className={`longCell ${colorOf(n)} ${selChipClass(n)} ${disguisedPairIdx.has(idx) ? "historyPair" : ""}`}
-                  onClick={() => onSelect(n)}
-                  title="Clique para selecionar (não registra)"
-                >
-                  {n}
-                </div>
-              );
-            })}
+        <div className={`panel left ${minimized.history ? "minimized" : ""}`}>
+          <div className="panelHeader">
+            <div className="sectionTitle">Histórico (150)</div>
+            <button className="btn-min" onClick={() => toggleMin("history")}>{minimized.history ? "+" : "−"}</button>
           </div>
-          <div className="hint">
-            Entrada só pelo input. Clique em número seleciona N e vizinhos (ou outro modo) com a cor ativa.
-            A seleção substitui a cor do chip. “RESET DE CORES” limpa as marcações.
-          </div>
+          {!minimized.history && (
+            <>
+              <div className="longGrid" aria-label="Histórico longo">
+                {longGridItems.map((n, idx) => {
+                  if (n === null) return <div key={idx} className="longCell empty" />;
+                  return (
+                    <div
+                      key={idx}
+                      className={`longCell ${colorOf(n)} ${selChipClass(n)} ${disguisedPairIdx.has(idx) ? "historyPair" : ""}`}
+                      onClick={() => onSelect(n)}
+                      title="Clique para selecionar (não registra)"
+                    >
+                      {n}
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="hint">
+                Entrada só pelo input. Clique em número seleciona N e vizinhos (ou outro modo) com a cor ativa.
+                A seleção substitui a cor do chip. “RESET DE CORES” limpa as marcações.
+              </div>
+            </>
+          )}
         </div>
         <div className="middleCols">
-          <NeighborsBlock history={lastTen} sel={sel} onPick={onSelect} />
-          <RaceDistBlock history={lastTen} sel={sel} onPick={onSelect} />
+          <div className={`panel-wrap ${minimized.neighbors ? "minimized" : ""}`}>
+            <NeighborsBlock 
+              history={lastTen} 
+              sel={sel} 
+              onPick={onSelect} 
+              isMinimized={minimized.neighbors}
+              onToggle={() => toggleMin("neighbors")}
+            />
+          </div>
+          <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
+            <RaceDistBlock 
+              history={lastTen} 
+              sel={sel} 
+              onPick={onSelect} 
+              isMinimized={minimized.raceDist}
+              onToggle={() => toggleMin("raceDist")}
+            />
+          </div>
         </div>
-        <div className="panel right">
-          <RaceTrack sel={sel} onPick={onSelect} />
-          <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
+        <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>
+          <div className="panelHeader">
+            <div className="sectionTitle">Racetrack & Mapa</div>
+            <button className="btn-min" onClick={() => toggleMin("trackMap")}>{minimized.trackMap ? "+" : "−"}</button>
+          </div>
+          {!minimized.trackMap && (
+            <>
+              <RaceTrack sel={sel} onPick={onSelect} />
+              <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
+            </>
+          )}
         </div>
       </div>
 
-      <div className="panel terminals" aria-label="Terminais">
-        {terminals.map((t) => <TerminalCard key={t.d} s={t} />)}
+      <div className={`panel terminals ${minimized.terminals ? "minimized" : ""}`} aria-label="Terminais">
+        <div className="panelHeader">
+          <div className="sectionTitle">Terminais</div>
+          <button className="btn-min" onClick={() => toggleMin("terminals")}>{minimized.terminals ? "+" : "−"}</button>
+        </div>
+        {!minimized.terminals && (
+          <div className="terminalsGrid">
+            {terminals.map((t) => <TerminalCard key={t.d} s={t} />)}
+          </div>
+        )}
       </div>
 
-      <div className="panel reps" aria-label="Repetições">
-        <Metric title="VERMELHO" value={streaks.color.key === "red" ? streaks.color.count : null} />
-        <Metric title="PRETO" value={streaks.color.key === "black" ? streaks.color.count : null} />
-        <Metric title="PAR" value={streaks.parity.key === "even" ? streaks.parity.count : null} />
-        <Metric title="ÍMPAR" value={streaks.parity.key === "odd" ? streaks.parity.count : null} />
-        <Metric title="BAIXO" value={streaks.half.key === "low" ? streaks.half.count : null} />
-        <Metric title="ALTO" value={streaks.half.key === "high" ? streaks.half.count : null} />
-        <Metric title="COL 1" value={streaks.column.key === 1 ? streaks.column.count : null} />
-        <Metric title="COL 2" value={streaks.column.key === 2 ? streaks.column.count : null} />
-        <Metric title="COL 3" value={streaks.column.key === 3 ? streaks.column.count : null} />
-        <Metric title="1ª DUZ" value={streaks.dozen.key === 1 ? streaks.dozen.count : null} />
-        <Metric title="2ª DUZ" value={streaks.dozen.key === 2 ? streaks.dozen.count : null} />
-        <Metric title="3ª DUZ" value={streaks.dozen.key === 3 ? streaks.dozen.count : null} />
+      <div className={`panel reps ${minimized.reps ? "minimized" : ""}`} aria-label="Repetições">
+        <div className="panelHeader">
+          <div className="sectionTitle">Repetições</div>
+          <button className="btn-min" onClick={() => toggleMin("reps")}>{minimized.reps ? "+" : "−"}</button>
+        </div>
+        {!minimized.reps && (
+          <div className="repsGrid">
+            <Metric title="VERMELHO" value={streaks.color.key === "red" ? streaks.color.count : null} />
+            <Metric title="PRETO" value={streaks.color.key === "black" ? streaks.color.count : null} />
+            <Metric title="PAR" value={streaks.parity.key === "even" ? streaks.parity.count : null} />
+            <Metric title="ÍMPAR" value={streaks.parity.key === "odd" ? streaks.parity.count : null} />
+            <Metric title="BAIXO" value={streaks.half.key === "low" ? streaks.half.count : null} />
+            <Metric title="ALTO" value={streaks.half.key === "high" ? streaks.half.count : null} />
+            <Metric title="COL 1" value={streaks.column.key === 1 ? streaks.column.count : null} />
+            <Metric title="COL 2" value={streaks.column.key === 2 ? streaks.column.count : null} />
+            <Metric title="COL 3" value={streaks.column.key === 3 ? streaks.column.count : null} />
+            <Metric title="1ª DUZ" value={streaks.dozen.key === 1 ? streaks.dozen.count : null} />
+            <Metric title="2ª DUZ" value={streaks.dozen.key === 2 ? streaks.dozen.count : null} />
+            <Metric title="3ª DUZ" value={streaks.dozen.key === 3 ? streaks.dozen.count : null} />
+          </div>
+        )}
       </div>
 
       <div className="versionBadge">v2.3.0</div>

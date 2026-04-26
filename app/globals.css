@@ -50,6 +50,45 @@ body{
   border:1px solid var(--border);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
+  transition: all 0.2s ease-in-out;
+}
+
+.panelHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.btn-min {
+  background: rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 16px;
+  color: var(--muted);
+  transition: background 0.2s;
+}
+
+.btn-min:hover {
+  background: rgba(0,0,0,0.2);
+}
+
+.panel.minimized {
+  flex: 0 0 auto !important;
+  height: auto !important;
+  min-height: 0 !important;
+  padding-bottom: 10px !important;
+}
+
+.panel.minimized .panelHeader {
+  margin-bottom: 0;
 }
 
 .topbar{
@@ -118,7 +157,7 @@ input[type="text"]{
 .black{ background:var(--black); }
 .green{ background:var(--green); }
 
-/* Seleção agora SUBSTITUI a cor do chip inteiro (bem chamativo) */
+/* Seleção */
 .selC1{ background:var(--selC1) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(26,102,255,.55); }
 .selC2{ background:var(--selC2) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,208,0,.55); }
 .selC3{ background:var(--selC3) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(38,208,124,.55); }
@@ -129,18 +168,8 @@ input[type="text"]{
 .selC8{ background:var(--selC8) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(183,255,0,.55); }
 .selC9{ background:var(--selC9) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,23,68,.55); }
 .selC10{ background:var(--selC10) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(0,229,168,.55); }
-.selC11{ background:var(--selC11) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,179,0,.55); }
-.selC12{ background:var(--selC12) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(139,92,246,.55); }
-.selC13{ background:var(--selC13) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,107,107,.55); }
-.selC14{ background:var(--selC14) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(77,208,225,.55); }
-.selC15{ background:var(--selC15) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(198,255,0,.55); }
-.selC16{ background:var(--selC16) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,0,255,.55); }
-.selC17{ background:var(--selC17) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(0,255,106,.55); }
-.selC18{ background:var(--selC18) !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(255,77,0,.55); }
-.selC19{ background:var(--selC19) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(75,255,0,.55); }
-.selC20{ background:var(--selC20) !important; color:#111 !important; box-shadow: 0 0 0 3px rgba(0,0,0,.12), 0 0 18px rgba(0,176,255,.55); }
 
-/* ---- layout principal: 3 colunas (histórico | vizinhos | race+mapa) ---- */
+/* ---- layout principal ---- */
 .main{
   flex:1;
   min-height:0;
@@ -151,7 +180,7 @@ input[type="text"]{
 
 .left{
   padding:10px;
-  overflow:hidden; /* SEM SCROLL */
+  overflow:hidden;
   display:flex;
   flex-direction:column;
   gap:8px;
@@ -165,7 +194,6 @@ input[type="text"]{
   font-size:12px;
 }
 
-/* Histórico longo 150 = 15x10 */
 .longGrid{
   flex:1;
   min-height:0;
@@ -173,7 +201,7 @@ input[type="text"]{
   grid-template-columns: repeat(15, 1fr);
   grid-template-rows: repeat(10, 1fr);
   gap:6px;
-  overflow:hidden; /* SEM SCROLL */
+  overflow:hidden;
 }
 
 .longCell{
@@ -186,7 +214,7 @@ input[type="text"]{
   user-select:none;
   border:2px solid rgba(255,255,255,.25);
   font-size:13px;
-  cursor:pointer; /* seleção */
+  cursor:pointer;
 }
 
 .longCell.empty{
@@ -195,12 +223,21 @@ input[type="text"]{
   cursor:default;
 }
 
-/* Bloco do meio: Duas colunas internas */
 .middleCols {
   display: grid;
   grid-template-columns: 1fr 0.8fr;
   gap: 10px;
   min-height: 0;
+}
+
+.panel-wrap {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.panel-wrap.minimized {
+  flex: 0 0 auto;
 }
 
 .right{
@@ -209,6 +246,10 @@ input[type="text"]{
   display:grid;
   grid-template-rows: 210px 1fr;
   gap:10px;
+}
+
+.right.minimized {
+  grid-template-rows: auto;
 }
 
 .raceBox{
@@ -248,7 +289,7 @@ input[type="text"]{
   color:#fff;
   border:2px solid rgba(255,255,255,.25);
   user-select:none;
-  cursor:pointer; /* seleção */
+  cursor:pointer;
 }
 
 .bet{
@@ -279,10 +320,14 @@ input[type="text"]{
 /* Painéis inferiores */
 .terminals{
   padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.terminalsGrid {
   display:grid;
   grid-template-columns: repeat(10, 1fr);
   gap:8px;
-  overflow:hidden;
 }
 .termCard{
   background: rgba(255,255,255,.35);
@@ -309,10 +354,14 @@ input[type="text"]{
 
 .reps{
   padding:10px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.repsGrid {
   display:grid;
   grid-template-columns: repeat(12, 1fr);
   gap:8px;
-  overflow:hidden;
 }
 .repCard{
   background: rgba(255,255,255,.35);
@@ -342,13 +391,13 @@ input[type="text"]{
 @media (max-width: 1200px){
   .main{ grid-template-columns: 1fr 1.8fr 1.2fr; }
   .right{ grid-template-rows: 170px 1fr; }
-  .terminals{ grid-template-columns: repeat(5, 1fr); }
-  .reps{ grid-template-columns: repeat(6, 1fr); }
+  .terminalsGrid{ grid-template-columns: repeat(5, 1fr); }
+  .repsGrid{ grid-template-columns: repeat(6, 1fr); }
 }
 
-/* VIZINHOS compacto */
+/* VIZINHOS */
 .neighborsPanel{ padding:10px; overflow:hidden; }
-.neighborsTitle{ font-weight:1000; letter-spacing:.6px; font-size:14px; margin-bottom:8px; }
+.neighborsTitle{ font-weight:1000; letter-spacing:.6px; font-size:14px; }
 .nbCols{
   display:grid;
   grid-template-columns: 1.35fr .55fr .55fr .7fr .55fr 1.35fr;
@@ -389,7 +438,7 @@ input[type="text"]{
 .nbEmpty{ opacity:.55; }
 .nbClickable{ cursor:pointer; }
 
-/* RaceDist específico */
+/* RaceDist */
 .rdGrid {
   display: flex;
   flex-direction: column;
@@ -428,6 +477,13 @@ input[type="text"]{
   background: rgba(255,255,255,.10);
   color:#f3f3f3;
   border-color: rgba(255,255,255,.12);
+}
+.app.theme-dark .btn-min {
+  background: rgba(255,255,255,0.1);
+  color: #f3f3f3;
+}
+.app.theme-dark .btn-min:hover {
+  background: rgba(255,255,255,0.2);
 }
 
 /* Easter egg 99 */
