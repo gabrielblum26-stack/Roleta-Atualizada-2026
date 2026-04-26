@@ -5,7 +5,7 @@ import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
 import NeighborsBlock from "./components/NeighborsBlock";
-import RaceDistBlock from "./components/RaceDistBlock";
+
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER } from "./lib/selection";
 import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
@@ -324,13 +324,6 @@ export default function Page() {
             <>
               <RaceTrack sel={sel} onPick={onSelect} />
               <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
-              <RaceDistBlock 
-                history={lastTen} 
-                sel={sel} 
-                onPick={onSelect} 
-                isMinimized={false}
-                onToggle={() => {}}
-              />
             </>
           )}
         </div>
