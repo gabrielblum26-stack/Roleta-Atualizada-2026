@@ -66,3 +66,19 @@ export function wheelStepEU(n: number, delta: number): number {
   const L = WHEEL_EU.length;
   return WHEEL_EU[(idx + delta + L * 1000) % L];
 }
+
+/**
+ * Calcula a distância entre dois números na roleta.
+ * H (Horário): passos de 'from' para 'to' movendo para a direita no array WHEEL_EU.
+ * AH (Anti-Horário): passos de 'from' para 'to' movendo para a esquerda no array WHEEL_EU.
+ */
+export function wheelDistance(from: number, to: number): { h: number; ah: number } {
+  const idxFrom = WHEEL_EU.indexOf(from);
+  const idxTo = WHEEL_EU.indexOf(to);
+  if (idxFrom < 0 || idxTo < 0) return { h: 0, ah: 0 };
+
+  const L = WHEEL_EU.length;
+  const h = (idxTo - idxFrom + L) % L;
+  const ah = (idxFrom - idxTo + L) % L;
+  return { h, ah };
+}

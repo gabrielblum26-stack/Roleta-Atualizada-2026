@@ -1274,3 +1274,43 @@ body.theme-dark .colorCircle {
 body.theme-dark .colorCircle.active {
   border-color: #fff;
 }
+
+/* Estilos para a nova estrutura AH | ATUAL | ANTES | H */
+.nbCols {
+  grid-template-columns: 1.1fr .4fr .4fr .6fr 1.8fr .4fr 1.1fr !important;
+}
+
+.nbRaceDist {
+  display: flex;
+  flex-direction: column;
+}
+
+.nbTripleHeader {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr 0.8fr;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.nbRaceRow {
+  display: grid;
+  grid-template-columns: 0.8fr 1fr 1fr 0.8fr;
+  gap: 4px;
+}
+
+.nbRaceRow .nbMini {
+  font-size: 12px;
+}
+
+@media (max-width: 1200px) {
+  .nbCols {
+    grid-template-columns: 1fr .4fr .4fr .6fr 1.5fr .4fr 1fr !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .nbTripleHeader, .nbRaceRow {
+    grid-template-columns: 1fr 1.2fr 1.2fr 1fr;
+    gap: 6px;
+  }
+}
