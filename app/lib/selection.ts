@@ -102,7 +102,7 @@ function setForMode(n: number, mode: SelMode): Set<number> {
 }
 
 /**
- * Aplica o clique usando a cor ATIVA (sem avançar o cursor automaticamente)
+ * Aplica o clique usando a cor ATIVA de forma CUMULATIVA.
  */
 export function applyClick(sel: SelState, n: number, mode: SelMode = "neighbors"): SelState {
   const color = SEL_ORDER[sel.activeColorIndex];
@@ -111,13 +111,14 @@ export function applyClick(sel: SelState, n: number, mode: SelMode = "neighbors"
   const sets = {} as Record<SelColor, Set<number>>;
   for (const c of SEL_ORDER) sets[c] = new Set(sel.sets[c]);
 
-  // Se o número já estiver nessa cor, limpa a cor (toggle)
-  // Caso contrário, limpa a cor e adiciona os novos números
-  const isAlreadyInThisColor = Array.from(nextSet).every(x => sets[color].has(x));
+  // Se o número clicado já estiver nessa cor, removemos o conjunto do modo
+  // Caso contrário, adicionamos o conjunto à cor ativa
+  const isAlreadyInThisColor = sets[color].has(n);
   
-  sets[color].clear();
-  if (!isAlreadyInThisColor) {
-    nextSet.forEach((x) => sets[color].add(x));
+  if (isAlreadyInThisColor) {
+    nextSet.forEach(x => sets[color].delete(x));
+  } else {
+    nextSet.forEach(x => sets[color].add(x));
   }
 
   return { ...sel, sets };
