@@ -373,6 +373,33 @@ input[type="text"]{
 
 /* VIZINHOS */
 .neighborsPanel{ padding:10px; overflow:hidden; }
+
+.strategiesGrid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  width: 100%;
+}
+
+.strategyBtn{
+  padding: 12px 8px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.strategyBtn:hover{
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
 .nbCols{
   display:grid;
   grid-template-columns: 1.35fr .55fr .55fr .7fr .55fr 1.35fr;
