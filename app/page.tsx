@@ -4,9 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
-import NeighborsBlock from "./components/NeighborsBlock";
+
 
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple } from "./lib/selection";
+import NeighborsBlock from "./components/NeighborsBlock";
 import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
 import { TerminalCard } from "./components/TerminalCard";
@@ -377,7 +378,7 @@ export default function Page() {
           )}
         </div>
         <div className="middleCols">
-          <div className={`panel-wrap ${minimized.neighbors ? "minimized" : ""}`}>
+          <div className={`panel-wrap`} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <NeighborsBlock 
               history={lastTen} 
               sel={sel} 
@@ -386,9 +387,9 @@ export default function Page() {
               isMinimized={minimized.neighbors}
               onToggle={() => toggleMin("neighbors")}
             />
-          </div>
-          <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
-            <MovementPanel history={history} />
+            <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
+              <MovementPanel history={history} />
+            </div>
           </div>
         </div>
         <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>
