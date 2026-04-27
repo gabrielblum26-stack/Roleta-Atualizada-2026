@@ -137,10 +137,24 @@ export function markMultiple(sel: SelState, nums: number[], markingMode: "unique
   for (const c of SEL_ORDER) sets[c] = new Set(sel.sets[c]);
 
   if (markingMode === "unique") {
-    sets[color].clear();
-    nums.forEach(n => sets[color].add(n));
+    // No modo único, se os números já forem exatamente os mesmos, limpa.
+    // Caso contrário, limpa e marca os novos.
+    const currentSet = sets[color];
+    const isSame = nums.length === currentSet.size && nums.every(n => currentSet.has(n));
+    
+    currentSet.clear();
+    if (!isSame) {
+      nums.forEach(n => currentSet.add(n));
+    }
   } else {
-    nums.forEach(n => sets[color].add(n));
+    // No modo acumulado, se o primeiro número da lista já estiver marcado,
+    // assumimos que queremos desmarcar a estratégia toda.
+    const hasFirst = nums.length > 0 && sets[color].has(nums[0]);
+    if (hasFirst) {
+      nums.forEach(n => sets[color].delete(n));
+    } else {
+      nums.forEach(n => sets[color].add(n));
+    }
   }
 
   return { ...sel, sets };

@@ -378,7 +378,7 @@ export default function Page() {
           )}
         </div>
         <div className="middleCols">
-          <div className={`panel-wrap`} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+          <div className={`panel-wrap ${minimized.neighbors ? "minimized" : ""}`}>
             <NeighborsBlock 
               history={lastTen} 
               sel={sel} 
@@ -387,9 +387,9 @@ export default function Page() {
               isMinimized={minimized.neighbors}
               onToggle={() => toggleMin("neighbors")}
             />
-            <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
-              <MovementPanel history={history} />
-            </div>
+          </div>
+          <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
+            <MovementPanel history={history} />
           </div>
         </div>
         <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>
