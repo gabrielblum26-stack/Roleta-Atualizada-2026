@@ -1,7 +1,7 @@
 "use client";
 
 import { STRATEGIES } from "../lib/strategies";
-import { selClass, type SelState } from "../lib/selection";
+import { type SelState } from "../lib/selection";
 
 type Props = {
   history: number[];
@@ -15,7 +15,6 @@ type Props = {
 export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, isMinimized, onToggle }: Props) {
   const handleMarkStrategy = (nums: number[], strategyIdx: number) => {
     // Definir a cor ativa baseada no índice da estratégia (cor 1 para est 1, cor 2 para est 2, etc.)
-    // O usuário pediu "cada estratégia tem que ter sua cor"
     const colorIndex = strategyIdx % 10;
     
     // Primeiro mudamos a cor ativa para a cor desta estratégia
@@ -60,20 +59,21 @@ export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, i
                   ⚡
                 </button>
 
-              <div className="strategyHistory">
-                {Array.from({ length: 15 }).map((_, hIdx) => {
-                  const num = history[hIdx];
-                  const hit = num !== undefined && strategy.nums.includes(num);
-                  return (
-                    <div 
-                      key={hIdx} 
-                      className={`historyBox ${hit ? "hit" : "miss"}`}
-                    />
-                  );
-                })}
+                <div className="strategyHistory">
+                  {Array.from({ length: 15 }).map((_, hIdx) => {
+                    const num = history[hIdx];
+                    const hit = num !== undefined && strategy.nums.includes(num);
+                    return (
+                      <div 
+                        key={hIdx} 
+                        className={`historyBox ${hit ? "hit" : "miss"}`}
+                      />
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

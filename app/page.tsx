@@ -5,9 +5,6 @@ import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple, getNumberColors } from "./lib/selection";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
-
-
-import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple } from "./lib/selection";
 import NeighborsBlock from "./components/NeighborsBlock";
 import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
@@ -69,16 +66,7 @@ export default function Page() {
       } else if (event.data.type === "MARK_STRATEGY") {
         // Marcar números da estratégia na cor ativa
         const nums = event.data.value as number[];
-        setSel((prev) => {
-          let next = { ...prev };
-          const color = SEL_ORDER[prev.activeColorIndex];
-          
-          // Limpa a cor atual e adiciona os novos números
-          const newSet = new Set<number>(nums);
-          next.sets[color] = newSet;
-          
-          return next;
-        });
+        setSel((prev) => markMultiple(prev, nums, markingMode));
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
       } else if (event.data.type === "SET_ACTIVE_COLOR") {
@@ -86,7 +74,7 @@ export default function Page() {
       }
     };
     return () => bc.close();
-  }, []);
+  }, [markingMode]);
 
   const openKeyboard = () => {
     const width = 500;
@@ -317,19 +305,17 @@ export default function Page() {
           {topZonePattern && (
             <div className="zone3">
               <div className="zoneHead">
-                  <div
-                    className={`chip ${colorOf(topZonePattern.xExample)}`}
-                    style={getCellStyles(topZonePattern.xExample)}
-                    onClick={() => onSelect(topZonePattern.xExample)}
-                    title="X exemplo (clique seleciona)"
-                  >
+                <div
+                  className={`chip ${colorOf(topZonePattern.xExample)}`}
+                  style={getCellStyles(topZonePattern.xExample)}
+                  onClick={() => onSelect(topZonePattern.xExample)}
+                  title="X exemplo (clique seleciona)"
+                >
                   {topZonePattern.triggerKind === "T"
                     ? topZonePattern.triggerLabel.replace("Terminal ", "")
                     : topZonePattern.triggerKind === "D"
                     ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
-                    : topZonePattern.triggerKind === "S"
-                    ? topZonePattern.triggerLabel.replace("Seco ", "")
-                    : topZonePattern.xExample}
+                    : ""}
                 </div>
                 <div className="zoneMeta">
                   <div className="zoneCount">{topZonePattern.count}x</div>
