@@ -2,7 +2,7 @@
 
 import { TABLE_ROWS, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
-import { selClass } from "../lib/selection";
+import { selClass, getNumberColors } from "../lib/selection";
 
 export type RepHighlight =
   | "red"
@@ -29,10 +29,23 @@ export default function TableMap({
 }) {
   const rowToCol: RepHighlight[] = ["col3", "col2", "col1"];
 
+  const getCellStyles = (n: number) => {
+    const colors = getNumberColors(sel, n);
+    if (colors.length === 0) return {};
+    if (colors.length === 1) return { backgroundColor: colors[0], boxShadow: `0 0 15px ${colors[0]}88` };
+    
+    // Gradiente para múltiplas cores
+    const step = 100 / colors.length;
+    const gradientParts = colors.map((c, i) => `${c} ${i * step}%, ${c} ${(i + 1) * step}%`);
+    return {
+      background: `linear-gradient(135deg, ${gradientParts.join(", ")})`,
+      boxShadow: `0 0 15px ${colors[0]}88`
+    };
+  };
+
   const cellCls = (n: number) => {
     const base = `cell ${colorOf(n)}`;
-    const s = selClass(sel, n);
-    return `${base} ${s}`.trim();
+    return base;
   };
 
   const betCls = (k: RepHighlight) => `bet ${rep.has(k) ? "rep" : ""}`.trim();
@@ -40,7 +53,11 @@ export default function TableMap({
   return (
     <div className="mapBox" aria-label="Mapa completo (clicável para seleção)">
       <div className="table">
-        <div className={cellCls(0)} style={{ gridRow: "1 / span 3", gridColumn: "1", fontSize: 18 }} onClick={() => onPick(0)}>
+        <div 
+          className={cellCls(0)} 
+          style={{ gridRow: "1 / span 3", gridColumn: "1", fontSize: 18, ...getCellStyles(0) }} 
+          onClick={() => onPick(0)}
+        >
           0
         </div>
 
@@ -50,7 +67,7 @@ export default function TableMap({
               <div
                 key={n}
                 className={cellCls(n)}
-                style={{ gridRow: String(rIdx + 1), gridColumn: String(2 + cIdx) }}
+                style={{ gridRow: String(rIdx + 1), gridColumn: String(2 + cIdx), ...getCellStyles(n) }}
                 onClick={() => onPick(n)}
               >
                 {n}

@@ -1,8 +1,9 @@
 "use client";
 
+import React from "react";
 import { WHEEL_EU, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
-import { selClass } from "../lib/selection";
+import { selClass, getNumberColors } from "../lib/selection";
 
 type Pt = { x: number; y: number; angle: number };
 
@@ -49,12 +50,13 @@ function buildTrackPoints(count: number): Pt[] {
   return pts;
 }
 
-function selectionFill(scls: string) {
-  if (scls && scls.startsWith("selC")) {
-    const num = scls.slice(4);
-    return `var(--selC${num})`;
-  }
-  return null;
+function selectionFill(sel: SelState, n: number) {
+  const colors = getNumberColors(sel, n);
+  if (colors.length === 0) return null;
+  if (colors.length === 1) return colors[0];
+  
+  // Para SVG, usamos um ID de gradiente definido nos <defs>
+  return `url(#grad-${n})`;
 }
 
 function needsDarkText(scls: string) {
@@ -80,6 +82,21 @@ export default function RaceTrack({
           <filter id="premiumShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.5" />
           </filter>
+          {WHEEL_EU.map(n => {
+            const colors = getNumberColors(sel, n);
+            if (colors.length <= 1) return null;
+            const step = 100 / colors.length;
+            return (
+              <linearGradient id={`grad-${n}`} key={n} x1="0%" y1="0%" x2="100%" y2="100%">
+                {colors.map((c, idx) => (
+                  <React.Fragment key={idx}>
+                    <stop offset={`${idx * step}%`} stopColor={c} />
+                    <stop offset={`${(idx + 1) * step}%`} stopColor={c} />
+                  </React.Fragment>
+                ))}
+              </linearGradient>
+            );
+          })}
         </defs>
 
         {/* Fundo da Pista */}
@@ -111,7 +128,7 @@ export default function RaceTrack({
           const p = pts[i];
           const base = colorOf(n);
           const scls = selClass(sel, n);
-          const override = selectionFill(scls);
+          const override = selectionFill(sel, n);
           const fill = override ?? `var(--${base})`;
           const textFill = needsDarkText(scls) ? "#111" : "#fff";
 

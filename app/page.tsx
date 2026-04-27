@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
+import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple, getNumberColors } from "./lib/selection";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
 
@@ -80,6 +81,8 @@ export default function Page() {
         });
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
+      } else if (event.data.type === "SET_ACTIVE_COLOR") {
+        onColorChange(event.data.value);
       }
     };
     return () => bc.close();
@@ -183,7 +186,17 @@ export default function Page() {
   const streaks = useMemo(() => computeStreaks(history), [history]);
   const terminals = useMemo(() => computeTerminals(history), [history]);
 
-  const selChipClass = (n: number) => selClass(sel, n);
+  const getCellStyles = (n: number) => {
+    const colors = getNumberColors(sel, n);
+    if (colors.length === 0) return {};
+    if (colors.length === 1) return { backgroundColor: colors[0], boxShadow: `0 0 15px ${colors[0]}88` };
+    const step = 100 / colors.length;
+    const gradientParts = colors.map((c, i) => `${c} ${i * step}%, ${c} ${(i + 1) * step}%`);
+    return {
+      background: `linear-gradient(135deg, ${gradientParts.join(", ")})`,
+      boxShadow: `0 0 15px ${colors[0]}88`
+    };
+  };
 
   const topZonePattern = useMemo(() => {
     if (history.length === 0) return null;
@@ -289,7 +302,8 @@ export default function Page() {
         {lastTen.map((n, idx) => (
           <div
             key={idx}
-            className={`chip ${colorOf(n)} ${selChipClass(n)}`}
+            className={`chip ${colorOf(n)}`}
+            style={getCellStyles(n)}
             onClick={() => onSelect(n)}
             title="Clique para selecionar"
           >
@@ -303,11 +317,12 @@ export default function Page() {
           {topZonePattern && (
             <div className="zone3">
               <div className="zoneHead">
-                <div
-                  className={`chip ${colorOf(topZonePattern.xExample)} ${selChipClass(topZonePattern.xExample)}`}
-                  onClick={() => onSelect(topZonePattern.xExample)}
-                  title="X exemplo (clique seleciona)"
-                >
+                  <div
+                    className={`chip ${colorOf(topZonePattern.xExample)}`}
+                    style={getCellStyles(topZonePattern.xExample)}
+                    onClick={() => onSelect(topZonePattern.xExample)}
+                    title="X exemplo (clique seleciona)"
+                  >
                   {topZonePattern.triggerKind === "T"
                     ? topZonePattern.triggerLabel.replace("Terminal ", "")
                     : topZonePattern.triggerKind === "D"
@@ -332,7 +347,8 @@ export default function Page() {
                     {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
                       <div
                         key={idx}
-                        className={`chip chipSmall ${colorOf(n)} ${selChipClass(n)}`}
+                        className={`chip chipSmall ${colorOf(n)}`}
+                        style={getCellStyles(n)}
                         onClick={() => onSelect(n)}
                         title="Número da zona (clique seleciona)"
                       >
@@ -361,7 +377,8 @@ export default function Page() {
                   return (
                     <div
                       key={idx}
-                      className={`longCell ${colorOf(n)} ${selChipClass(n)} ${disguisedPairIdx.has(idx) ? "historyPair" : ""}`}
+                      className={`longCell ${colorOf(n)} ${disguisedPairIdx.has(idx) ? "historyPair" : ""}`}
+                      style={getCellStyles(n)}
                       onClick={() => onSelect(n)}
                       title="Clique para selecionar (não registra)"
                     >

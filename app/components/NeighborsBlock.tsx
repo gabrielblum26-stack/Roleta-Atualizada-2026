@@ -13,12 +13,21 @@ type Props = {
 };
 
 export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, isMinimized, onToggle }: Props) {
-  const handleMarkStrategy = (nums: number[]) => {
+  const handleMarkStrategy = (nums: number[], strategyIdx: number) => {
+    // Definir a cor ativa baseada no índice da estratégia (cor 1 para est 1, cor 2 para est 2, etc.)
+    // O usuário pediu "cada estratégia tem que ter sua cor"
+    const colorIndex = strategyIdx % 10;
+    
+    // Primeiro mudamos a cor ativa para a cor desta estratégia
+    const bc = new BroadcastChannel("roulette_keyboard");
+    bc.postMessage({ type: "SET_ACTIVE_COLOR", value: colorIndex });
+    
     if (onMarkStrategy) {
       onMarkStrategy(nums);
     } else {
       nums.forEach((n) => onPick(n));
     }
+    bc.close();
   };
 
   return (
@@ -30,19 +39,26 @@ export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, i
 
       {!isMinimized && (
         <div className="strategiesList">
-          {STRATEGIES.map((strategy, idx) => (
-            <div key={idx} className="strategyRow">
-              <div className="strategyName" style={{ color: strategy.color }}>
-                {strategy.name}
-              </div>
-              
-              <button 
-                className="strategyActionBtn"
-                onClick={() => handleMarkStrategy(strategy.nums)}
-                title="Marcar na roleta"
-              >
-                ⚡
-              </button>
+          {STRATEGIES.map((strategy, idx) => {
+            const isActive = strategy.nums.length > 0 && sel.sets[`c${(idx % 10) + 1}` as any]?.has(strategy.nums[0]);
+            return (
+              <div key={idx} className="strategyRow" style={{ borderLeft: `4px solid var(--selC${(idx % 10) + 1})` }}>
+                <div className="strategyName" style={{ color: strategy.color }}>
+                  {strategy.name}
+                </div>
+                
+                <button 
+                  className={`strategyActionBtn ${isActive ? "active" : ""}`}
+                  onClick={() => handleMarkStrategy(strategy.nums, idx)}
+                  title="Marcar na roleta"
+                  style={{ 
+                    color: isActive ? "#fff" : "var(--selC" + ((idx % 10) + 1) + ")",
+                    backgroundColor: isActive ? "var(--selC" + ((idx % 10) + 1) + ")" : "transparent",
+                    borderColor: "var(--selC" + ((idx % 10) + 1) + ")"
+                  }}
+                >
+                  ⚡
+                </button>
 
               <div className="strategyHistory">
                 {Array.from({ length: 15 }).map((_, hIdx) => {

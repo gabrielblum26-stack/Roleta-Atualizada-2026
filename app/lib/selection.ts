@@ -12,6 +12,7 @@ export type SelMode = "neighbors" | "unique" | "terminalDisguised" | "sumDisguis
 export type SelState = {
   activeColorIndex: number; // Índice da cor selecionada manualmente (0..9)
   sets: Record<SelColor, Set<number>>;
+  strategyColors?: Record<string, string>; // Mapeamento de nome de estratégia para cor hexadecimal
 };
 
 export function initSel(): SelState {
@@ -169,6 +170,22 @@ export function setActiveColor(sel: SelState, index: number): SelState {
 }
 
 /**
+ * Retorna todas as cores associadas a um número.
+ * Útil para exibir múltiplas cores (gradientes/bordas).
+ */
+export function getNumberColors(sel: SelState, n: number): string[] {
+  const colors: string[] = [];
+  for (let i = 0; i < SEL_ORDER.length; i++) {
+    const c = SEL_ORDER[i];
+    if (sel.sets[c].has(n)) {
+      colors.push(`var(--selC${i + 1})`);
+    }
+  }
+  return colors;
+}
+
+/**
+ * Mantido para compatibilidade onde apenas uma classe é necessária.
  * Prioridade visual fixa: C10 > ... > C1
  */
 export function selClass(sel: SelState, n: number): "" | `selC${number}` {
