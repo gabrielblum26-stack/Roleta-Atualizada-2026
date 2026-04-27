@@ -34,11 +34,12 @@ body{
   background:var(--bg);
   color:var(--text);
   font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
 }
 
 .app{
-  height:100vh;
+  min-height:100vh;
   padding:12px;
   display:flex;
   flex-direction:column;
@@ -92,6 +93,7 @@ body{
   display:flex;
   align-items:center;
   gap:10px;
+  flex-wrap: wrap;
 }
 .topbar label{
   font-weight:900;
@@ -174,6 +176,49 @@ input[type="text"]{
   display:grid;
   grid-template-columns: 1fr 1.8fr 1.2fr;
   gap:10px;
+}
+
+@media (max-width: 1024px) {
+  .main {
+    grid-template-columns: 1fr;
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .middleCols {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .inputWrap {
+    width: 100%;
+  }
+  
+  .colorPicker, .modeSelectWrap, .markingModeWrap {
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .app {
+    overflow-y: auto;
+    height: auto;
+  }
+  
+  .raceBox {
+    min-height: 180px;
+  }
+  
+  .terminalsGrid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .repsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .left{
