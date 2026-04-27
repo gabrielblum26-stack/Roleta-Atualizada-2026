@@ -64,9 +64,8 @@ export default function Page() {
       if (event.data.type === "ADD_NUMBER") {
         addNumber(event.data.value);
       } else if (event.data.type === "MARK_STRATEGY") {
-        // Marcar números da estratégia na cor ativa
         const nums = event.data.value as number[];
-        setSel((prev) => markMultiple(prev, nums, markingMode));
+        onMarkStrategy(nums);
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
       } else if (event.data.type === "SET_ACTIVE_COLOR") {
@@ -74,7 +73,7 @@ export default function Page() {
       }
     };
     return () => bc.close();
-  }, [markingMode]);
+  }, [markingMode, sel]); // Dependência de sel para garantir que markMultiple use o estado atual
 
   const openKeyboard = () => {
     const width = 500;
@@ -167,8 +166,12 @@ export default function Page() {
     setSel((prev) => setActiveColor(prev, index));
   }
 
-  function onMarkStrategy(nums: number[]) {
-    setSel((prev) => markMultiple(prev, nums, markingMode));
+  function onMarkStrategy(nums: number[], colorIndex?: number) {
+    setSel((prev) => {
+      // Se um índice de cor for passado, mudamos a cor ativa temporariamente para essa operação
+      const tempSel = colorIndex !== undefined ? setActiveColor(prev, colorIndex) : prev;
+      return markMultiple(tempSel, nums, markingMode);
+    });
   }
 
   const streaks = useMemo(() => computeStreaks(history), [history]);

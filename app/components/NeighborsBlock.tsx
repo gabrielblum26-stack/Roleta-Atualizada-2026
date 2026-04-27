@@ -1,32 +1,26 @@
 "use client";
 
 import { STRATEGIES } from "../lib/strategies";
-import { type SelState } from "../lib/selection";
+import { type SelState, SEL_ORDER } from "../lib/selection";
 
 type Props = {
   history: number[];
   sel: SelState;
   onPick: (n: number) => void;
-  onMarkStrategy?: (nums: number[]) => void;
+  onMarkStrategy?: (nums: number[], colorIndex: number) => void;
   isMinimized?: boolean;
   onToggle?: () => void;
 };
 
 export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, isMinimized, onToggle }: Props) {
   const handleMarkStrategy = (nums: number[], strategyIdx: number) => {
-    // Definir a cor ativa baseada no índice da estratégia (cor 1 para est 1, cor 2 para est 2, etc.)
     const colorIndex = strategyIdx % 10;
-    
-    // Primeiro mudamos a cor ativa para a cor desta estratégia
-    const bc = new BroadcastChannel("roulette_keyboard");
-    bc.postMessage({ type: "SET_ACTIVE_COLOR", value: colorIndex });
-    
     if (onMarkStrategy) {
-      onMarkStrategy(nums);
+      onMarkStrategy(nums, colorIndex);
     } else {
+      // Fallback caso a função não seja passada
       nums.forEach((n) => onPick(n));
     }
-    bc.close();
   };
 
   return (
@@ -39,9 +33,12 @@ export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, i
       {!isMinimized && (
         <div className="strategiesList">
           {STRATEGIES.map((strategy, idx) => {
-            const isActive = strategy.nums.length > 0 && sel.sets[`c${(idx % 10) + 1}` as any]?.has(strategy.nums[0]);
+            const colorKey = SEL_ORDER[idx % 10];
+            const isActive = strategy.nums.length > 0 && sel.sets[colorKey]?.has(strategy.nums[0]);
+            const colorVar = `var(--selC${(idx % 10) + 1})`;
+            
             return (
-              <div key={idx} className="strategyRow" style={{ borderLeft: `4px solid var(--selC${(idx % 10) + 1})` }}>
+              <div key={idx} className="strategyRow" style={{ borderLeft: `4px solid ${colorVar}` }}>
                 <div className="strategyName" style={{ color: strategy.color }}>
                   {strategy.name}
                 </div>
@@ -51,9 +48,9 @@ export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, i
                   onClick={() => handleMarkStrategy(strategy.nums, idx)}
                   title="Marcar na roleta"
                   style={{ 
-                    color: isActive ? "#fff" : "var(--selC" + ((idx % 10) + 1) + ")",
-                    backgroundColor: isActive ? "var(--selC" + ((idx % 10) + 1) + ")" : "transparent",
-                    borderColor: "var(--selC" + ((idx % 10) + 1) + ")"
+                    color: isActive ? "#fff" : colorVar,
+                    backgroundColor: isActive ? colorVar : "transparent",
+                    borderColor: colorVar
                   }}
                 >
                   ⚡
