@@ -75,7 +75,7 @@ export default function RaceTrack({
 
   return (
     <div className="raceBox" aria-label="Race Profissional">
-      <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="auto" preserveAspectRatio="xMidYMid meet">
+      <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
         <defs>
           <filter id="premiumShadow" x="-20%" y="-20%" width="140%" height="140%">
             <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.5" />
