@@ -374,30 +374,69 @@ input[type="text"]{
 /* VIZINHOS */
 .neighborsPanel{ padding:10px; overflow:hidden; }
 
-.strategiesGrid{
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+.strategiesList{
+  display: flex;
+  flex-direction: column;
   gap: 8px;
-  width: 100%;
 }
 
-.strategyBtn{
-  padding: 12px 8px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  font-size: 12px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: center;
+.strategyRow{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.strategyName{
+  width: 140px;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.strategyBtn:hover{
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+.strategyActionBtn{
+  background: none;
+  border: 1px solid #444;
+  color: #f59e0b;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.strategyActionBtn:hover{
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+}
+
+.strategyHistory{
+  display: flex;
+  gap: 4px;
+  flex: 1;
+}
+
+.historyBox{
+  width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  border: 1px solid #333;
+  transition: background 0.3s;
+}
+
+.historyBox.hit{
+  background: #22c55e;
+}
+
+.historyBox.miss{
+  background: #262626;
 }
 
 .nbCols{

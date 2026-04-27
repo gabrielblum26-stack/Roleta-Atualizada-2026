@@ -12,6 +12,10 @@ type Props = {
 };
 
 export default function NeighborsBlock({ history, sel, onPick, isMinimized, onToggle }: Props) {
+  const onMarkStrategy = (nums: number[]) => {
+    nums.forEach((n) => onPick(n));
+  };
+
   return (
     <div className={`panel neighborsPanel ${isMinimized ? "minimized" : ""}`} aria-label="Estratégias personalizadas">
       <div className="panelHeader">
@@ -20,22 +24,34 @@ export default function NeighborsBlock({ history, sel, onPick, isMinimized, onTo
       </div>
 
       {!isMinimized && (
-        <div className="strategiesGrid">
-          {STRATEGIES.map((strategy) => (
-            <button
-              key={strategy.name}
-              className="strategyBtn"
-              style={{
-                backgroundColor: strategy.color,
-                color: strategy.color === "#ffd000" ? "#000" : "#fff",
-              }}
-              onClick={() => {
-                strategy.nums.forEach((n) => onPick(n));
-              }}
-              title={`Números: ${strategy.nums.join(", ")}`}
-            >
-              {strategy.name}
-            </button>
+        <div className="strategiesList">
+          {STRATEGIES.map((strategy, idx) => (
+            <div key={idx} className="strategyRow">
+              <div className="strategyName" style={{ color: strategy.color }}>
+                {strategy.name}
+              </div>
+              
+              <button 
+                className="strategyActionBtn"
+                onClick={() => onMarkStrategy(strategy.nums)}
+                title="Marcar na roleta"
+              >
+                ⚡
+              </button>
+
+              <div className="strategyHistory">
+                {Array.from({ length: 15 }).map((_, hIdx) => {
+                  const num = history[hIdx];
+                  const hit = num !== undefined && strategy.nums.includes(num);
+                  return (
+                    <div 
+                      key={hIdx} 
+                      className={`historyBox ${hit ? "hit" : "miss"}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
           ))}
         </div>
       )}
