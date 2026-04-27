@@ -27,9 +27,10 @@ export default function EstrategiasPage() {
     return () => bc.close();
   }, []);
 
-  const onMarkStrategy = (nums: number[]) => {
+  const onMarkStrategy = (nums: number[], idx: number) => {
     const bc = new BroadcastChannel("roulette_keyboard");
-    bc.postMessage({ type: "MARK_STRATEGY", value: nums });
+    // Enviar o colorIndex para que o toggle funcione com a cor correta da estratégia
+    bc.postMessage({ type: "MARK_STRATEGY", value: nums, colorIndex: idx % 10 });
     bc.close();
   };
 
@@ -58,7 +59,7 @@ export default function EstrategiasPage() {
             </div>
             
             <button 
-              onClick={() => onMarkStrategy(strat.nums)}
+              onClick={() => onMarkStrategy(strat.nums, sIdx)}
               style={{ 
                 background: "none", 
                 border: "1px solid #444", 

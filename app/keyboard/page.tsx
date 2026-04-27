@@ -23,9 +23,9 @@ export default function KeyboardPage() {
     bc.close();
   };
 
-  const onMarkStrategy = (nums: number[]) => {
+  const onMarkStrategy = (nums: number[], colorIndex?: number) => {
     const bc = new BroadcastChannel("roulette_keyboard");
-    bc.postMessage({ type: "MARK_STRATEGY", value: nums });
+    bc.postMessage({ type: "MARK_STRATEGY", value: nums, colorIndex });
     bc.close();
   };
 
@@ -81,7 +81,7 @@ export default function KeyboardPage() {
           {STRATEGIES.map((strat, i) => (
             <button 
               key={i} 
-              onClick={() => onMarkStrategy(strat.nums)}
+              onClick={() => onMarkStrategy(strat.nums, i % 10)}
               className="strat-btn"
               style={{ background: "#262626", color: strat.color || "#fff" }}
             >

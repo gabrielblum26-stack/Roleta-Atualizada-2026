@@ -65,7 +65,8 @@ export default function Page() {
         addNumber(event.data.value);
       } else if (event.data.type === "MARK_STRATEGY") {
         const nums = event.data.value as number[];
-        onMarkStrategy(nums);
+        const colorIndex = event.data.colorIndex; // Pode ser undefined
+        onMarkStrategy(nums, colorIndex);
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
       } else if (event.data.type === "SET_ACTIVE_COLOR") {
@@ -73,7 +74,7 @@ export default function Page() {
       }
     };
     return () => bc.close();
-  }, [markingMode, sel]);
+  }, [markingMode, sel]); // Mantemos sel como dependência para que onMarkStrategy acesse o estado atualizado
 
   const openKeyboard = () => {
     const width = 500;
@@ -168,7 +169,9 @@ export default function Page() {
 
   function onMarkStrategy(nums: number[], colorIndex?: number) {
     setSel((prev) => {
-      const tempSel = colorIndex !== undefined ? setActiveColor(prev, colorIndex) : prev;
+      // Usar a cor fornecida ou a cor ativa atual
+      const targetColorIndex = colorIndex !== undefined ? colorIndex : prev.activeColorIndex;
+      const tempSel = setActiveColor(prev, targetColorIndex);
       return markMultiple(tempSel, nums, markingMode);
     });
   }
