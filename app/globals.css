@@ -222,10 +222,10 @@ input[type="text"]{
 
 .middleCols {
   display: grid;
-  grid-template-columns: 1.2fr 1fr;
+  grid-template-columns: 1.1fr 1fr;
   gap: 10px;
   min-height: 0;
-  overflow: hidden;
+  flex: 1;
 }
 
 .panel-wrap {
@@ -569,7 +569,7 @@ input[type="text"]{
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   height: 100%;
-  overflow: hidden;
+  min-height: 0;
 }
 
 .movementHeader {
@@ -764,7 +764,7 @@ input[type="text"]{
 /* Movement Grid 10x10 */
 .movementGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(45px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
   gap: 4px;
   flex: 1;
   overflow-y: auto;
@@ -773,6 +773,7 @@ input[type="text"]{
   border-radius: 10px;
   scrollbar-width: thin;
   scrollbar-color: rgba(255,255,255,.2) transparent;
+  min-height: 150px;
 }
 
 .movementGrid::-webkit-scrollbar {
