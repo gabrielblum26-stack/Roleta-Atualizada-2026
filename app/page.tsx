@@ -6,7 +6,7 @@ import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
 import NeighborsBlock from "./components/NeighborsBlock";
 
-import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER } from "./lib/selection";
+import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple } from "./lib/selection";
 import { computeStreaks } from "./lib/streaks";
 import { computeTerminals } from "./lib/terminals";
 import { TerminalCard } from "./components/TerminalCard";
@@ -173,6 +173,10 @@ export default function Page() {
 
   function onColorChange(index: number) {
     setSel((prev) => setActiveColor(prev, index));
+  }
+
+  function onMarkStrategy(nums: number[]) {
+    setSel((prev) => markMultiple(prev, nums, markingMode));
   }
 
   const streaks = useMemo(() => computeStreaks(history), [history]);
@@ -378,6 +382,7 @@ export default function Page() {
               history={lastTen} 
               sel={sel} 
               onPick={onSelect} 
+              onMarkStrategy={onMarkStrategy}
               isMinimized={minimized.neighbors}
               onToggle={() => toggleMin("neighbors")}
             />

@@ -129,6 +129,24 @@ export function applyClick(sel: SelState, n: number, mode: SelMode = "neighbors"
 }
 
 /**
+ * Marca múltiplos números com a cor ativa (para estratégias)
+ */
+export function markMultiple(sel: SelState, nums: number[], markingMode: "unique" | "cumulative" = "cumulative"): SelState {
+  const color = SEL_ORDER[sel.activeColorIndex];
+  const sets = {} as Record<SelColor, Set<number>>;
+  for (const c of SEL_ORDER) sets[c] = new Set(sel.sets[c]);
+
+  if (markingMode === "unique") {
+    sets[color].clear();
+    nums.forEach(n => sets[color].add(n));
+  } else {
+    nums.forEach(n => sets[color].add(n));
+  }
+
+  return { ...sel, sets };
+}
+
+/**
  * Muda a cor ativa manualmente
  */
 export function setActiveColor(sel: SelState, index: number): SelState {

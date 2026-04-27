@@ -7,13 +7,18 @@ type Props = {
   history: number[];
   sel: SelState;
   onPick: (n: number) => void;
+  onMarkStrategy?: (nums: number[]) => void;
   isMinimized?: boolean;
   onToggle?: () => void;
 };
 
-export default function NeighborsBlock({ history, sel, onPick, isMinimized, onToggle }: Props) {
-  const onMarkStrategy = (nums: number[]) => {
-    nums.forEach((n) => onPick(n));
+export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, isMinimized, onToggle }: Props) {
+  const handleMarkStrategy = (nums: number[]) => {
+    if (onMarkStrategy) {
+      onMarkStrategy(nums);
+    } else {
+      nums.forEach((n) => onPick(n));
+    }
   };
 
   return (
@@ -33,7 +38,7 @@ export default function NeighborsBlock({ history, sel, onPick, isMinimized, onTo
               
               <button 
                 className="strategyActionBtn"
-                onClick={() => onMarkStrategy(strategy.nums)}
+                onClick={() => handleMarkStrategy(strategy.nums)}
                 title="Marcar na roleta"
               >
                 ⚡
