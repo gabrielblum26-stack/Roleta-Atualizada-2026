@@ -77,6 +77,8 @@ export default function Page() {
           
           return next;
         });
+      } else if (event.data.type === "RESET_COLORS") {
+        onResetColors();
       }
     };
     return () => bc.close();
