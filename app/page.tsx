@@ -73,7 +73,7 @@ export default function Page() {
       }
     };
     return () => bc.close();
-  }, [markingMode, sel]); // Dependência de sel para garantir que markMultiple use o estado atual
+  }, [markingMode, sel]);
 
   const openKeyboard = () => {
     const width = 500;
@@ -168,7 +168,6 @@ export default function Page() {
 
   function onMarkStrategy(nums: number[], colorIndex?: number) {
     setSel((prev) => {
-      // Se um índice de cor for passado, mudamos a cor ativa temporariamente para essa operação
       const tempSel = colorIndex !== undefined ? setActiveColor(prev, colorIndex) : prev;
       return markMultiple(tempSel, nums, markingMode);
     });
@@ -210,83 +209,89 @@ export default function Page() {
           <img src="/easter-99.gif" alt="Easter 99" />
         </div>
       )}
+      
       <div className="panel topbar">
-        <label>Digite (vírgula):</label>
-        <div className="inputWrap">
-          <input
-            type="text"
-            placeholder="Ex: 1,24,36"
-            value={raw}
-            onChange={(e) => setRaw(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                onSend();
-              }
-            }}
-          />
-        </div>
-        <button className="btn btn-send" onClick={onSend}>ENVIAR</button>
-        <button className="btn btn-undo" onClick={onUndoLast}>APAGAR</button>
-        <button className="btn btn-colors" onClick={onResetColors} title="Limpa apenas seleções">
-          RESET DE CORES
-        </button>
-        <button className="btn btn-keyboard" onClick={openKeyboard} style={{ background: "#9333ea", color: "#fff" }}>
-          KEYBOARD
-        </button>
-        <button className="btn btn-strategies" onClick={openStrategies} style={{ background: "#22c55e", color: "#fff" }}>
-          ESTRATEGIAS
-        </button>
-
-        <div className="colorPicker">
-          <span className="colorLabel">COR ATIVA:</span>
-          {SEL_ORDER.map((_, idx) => (
-            <div
-              key={idx}
-              className={`colorCircle activeC${idx + 1} ${sel.activeColorIndex === idx ? "active" : ""}`}
-              style={{ backgroundColor: `var(--selC${idx + 1})` }}
-              onClick={() => onColorChange(idx)}
-              title={`Cor ${idx + 1}`}
+        <div className="topbarLine">
+          <div className="userGreeting">Olá, Cleber!</div>
+          <label>Digite (vírgula):</label>
+          <div className="inputWrap">
+            <input
+              type="text"
+              placeholder="Ex: 1,24,36"
+              value={raw}
+              onChange={(e) => setRaw(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  onSend();
+                }
+              }}
             />
-          ))}
-        </div>
-
-        <div className="modeSelectWrap" title="Muda a função do seletor de cores">
-          <span className="modeLabel">MODO</span>
-          <select
-            className="modeSelect"
-            value={selMode}
-            onChange={(e) => setSelMode(e.target.value as SelMode)}
-            aria-label="Modo do seletor de cores"
-          >
-            <option value="neighbors">1 — Vizinhos</option>
-            <option value="unique">2 — Único</option>
-            <option value="terminalDisguised">3 — Disfarçados do Terminal</option>
-            <option value="sumDisguised">4 — Disfarçados da Soma</option>
-            <option value="newMarking">5 — Nova marcação</option>
-            <option value="zoneMarking">6 — Marcação de zona</option>
-          </select>
-        </div>
-
-        <div className="markingModeWrap" title="Alterna entre marcacao unica e acumulada">
-          <span className="markingLabel">MARCACAO</span>
-          <button
-            className={`markingBtn ${markingMode === "unique" ? "active" : ""}`}
-            onClick={() => setMarkingMode("unique")}
-            title="Cada clique limpa a cor anterior"
-          >
-            Unica
+          </div>
+          <button className="btn btn-send" onClick={onSend}>ENVIAR</button>
+          <button className="btn btn-undo" onClick={onUndoLast}>APAGAR</button>
+          <button className="btn btn-reset" onClick={onResetAll}>RESET TOTAL</button>
+          <button className="btn btn-keyboard" onClick={openKeyboard} style={{ background: "#9333ea", color: "#fff" }}>
+            KEYBOARD
           </button>
-          <button
-            className={`markingBtn ${markingMode === "cumulative" ? "active" : ""}`}
-            onClick={() => setMarkingMode("cumulative")}
-            title="Cliques acumulam na mesma cor"
-          >
-            Acumulada
+          <button className="btn btn-strategies" onClick={openStrategies} style={{ background: "#22c55e", color: "#fff" }}>
+            ESTRATEGIAS
           </button>
         </div>
 
-        <button className="btn btn-reset" onClick={onResetAll}>RESET</button>
+        <div className="topbarLine secondary">
+          <button className="btn btn-colors" onClick={onResetColors} title="Limpa apenas seleções">
+            RESET DE CORES
+          </button>
+
+          <div className="colorPicker">
+            <span className="colorLabel">COR ATIVA:</span>
+            {SEL_ORDER.map((_, idx) => (
+              <div
+                key={idx}
+                className={`colorCircle activeC${idx + 1} ${sel.activeColorIndex === idx ? "active" : ""}`}
+                style={{ backgroundColor: `var(--selC${idx + 1})` }}
+                onClick={() => onColorChange(idx)}
+                title={`Cor ${idx + 1}`}
+              />
+            ))}
+          </div>
+
+          <div className="modeSelectWrap" title="Muda a função do seletor de cores">
+            <span className="modeLabel">MODO</span>
+            <select
+              className="modeSelect"
+              value={selMode}
+              onChange={(e) => setSelMode(e.target.value as SelMode)}
+              aria-label="Modo do seletor de cores"
+            >
+              <option value="neighbors">1 — Vizinhos</option>
+              <option value="unique">2 — Único</option>
+              <option value="terminalDisguised">3 — Disfarçados do Terminal</option>
+              <option value="sumDisguised">4 — Disfarçados da Soma</option>
+              <option value="newMarking">5 — Nova marcação</option>
+              <option value="zoneMarking">6 — Marcação de zona</option>
+            </select>
+          </div>
+
+          <div className="markingModeWrap" title="Alterna entre marcacao unica e acumulada">
+            <span className="markingLabel">MARCACAO</span>
+            <button
+              className={`markingBtn ${markingMode === "unique" ? "active" : ""}`}
+              onClick={() => setMarkingMode("unique")}
+              title="Cada clique limpa a cor anterior"
+            >
+              Unica
+            </button>
+            <button
+              className={`markingBtn ${markingMode === "cumulative" ? "active" : ""}`}
+              onClick={() => setMarkingMode("cumulative")}
+              title="Cliques acumulam na mesma cor"
+            >
+              Acumulada
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className="panel lastStrip" aria-label="Últimos números">
