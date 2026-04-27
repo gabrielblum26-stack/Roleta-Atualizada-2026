@@ -50,14 +50,33 @@ export default function Page() {
 
   useEffect(() => {
     if (history.length > 0 && history[0] === 99) triggerEaster99();
+    
+    // Sincronizar histórico com outras janelas
+    localStorage.setItem("roulette_history", JSON.stringify(history));
+    const bc = new BroadcastChannel("roulette_history_sync");
+    bc.postMessage({ type: "UPDATE_HISTORY", value: history });
+    bc.close();
   }, [history]);
 
   useEffect(() => {
-    // Escutar números vindos da janela Keyboard
+    // Escutar comandos vindos das janelas Keyboard ou Estratégias
     const bc = new BroadcastChannel("roulette_keyboard");
     bc.onmessage = (event) => {
       if (event.data.type === "ADD_NUMBER") {
         addNumber(event.data.value);
+      } else if (event.data.type === "MARK_STRATEGY") {
+        // Marcar números da estratégia na cor ativa
+        const nums = event.data.value as number[];
+        setSel((prev) => {
+          let next = { ...prev };
+          const color = SEL_ORDER[prev.activeColorIndex];
+          
+          // Limpa a cor atual e adiciona os novos números
+          const newSet = new Set<number>(nums);
+          next.sets[color] = newSet;
+          
+          return next;
+        });
       }
     };
     return () => bc.close();
@@ -72,6 +91,19 @@ export default function Page() {
     window.open(
       "/keyboard",
       "RouletteKeyboard",
+      `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
+    );
+  };
+
+  const openStrategies = () => {
+    const width = 600;
+    const height = 700;
+    const left = 50;
+    const top = 100;
+    
+    window.open(
+      "/estrategias",
+      "RouletteStrategies",
       `width=${width},height=${height},left=${left},top=${top},menubar=no,toolbar=no,location=no,status=no,resizable=yes`
     );
   };
@@ -190,6 +222,9 @@ export default function Page() {
         </button>
         <button className="btn btn-keyboard" onClick={openKeyboard} style={{ background: "#9333ea", color: "#fff" }}>
           KEYBOARD
+        </button>
+        <button className="btn btn-strategies" onClick={openStrategies} style={{ background: "#22c55e", color: "#fff" }}>
+          ESTRATEGIAS
         </button>
 
         <div className="colorPicker">
