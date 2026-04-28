@@ -5,48 +5,71 @@ import { WHEEL_EU, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
 import { selClass, getNumberColors } from "../lib/selection";
 
-type Pt = { x: number; y: number; angle: number };
+type Pt = { x: number; y: number; angle: number; n: number };
 
-function buildTrackPoints(count: number): Pt[] {
+/**
+ * Constrói os pontos da Racetrack seguindo o formato da imagem:
+ * - 0 à direita (centro vertical)
+ * - Números distribuídos em uma pista oval
+ * - Ordem horária conforme WHEEL_EU
+ */
+function buildTrackPoints(): Pt[] {
   const W = 900;
-  const H = 200; // Reduzido para remover espaço vazio vertical
-  const padX = 60;
-  const padY = 30; // Reduzido
+  const H = 240;
+  const r = 90; // Raio das curvas
+  const paddingX = 80;
+  const straightLen = W - 2 * paddingX - 2 * r;
+  
+  const leftX = paddingX + r;
+  const rightX = W - paddingX - r;
+  const topY = (H / 2) - r;
+  const bottomY = (H / 2) + r;
+  const midY = H / 2;
 
-  const r = 70; // Ajustado para a nova altura
-  const left = padX;
-  const right = W - padX;
-  const top = padY;
-  const bottom = H - padY;
-
-  const straightLen = (right - left) - 2 * r;
   const arcLen = Math.PI * r;
   const totalLen = 2 * straightLen + 2 * arcLen;
-  const step = totalLen / count;
+  const step = totalLen / WHEEL_EU.length;
 
-  const midY = (top + bottom) / 2;
+  // Na imagem, o 0 está no extremo direito (meio da curva direita)
+  // O array WHEEL_EU começa com 0.
+  // Então o ponto 0 deve ser (W - paddingX, midY)
+  // No nosso cálculo de s, o extremo direito (meio da curva) ocorre em s = straightLen + arcLen/2
+  const offset = straightLen + arcLen / 2;
 
-  function pointAt(s: number): Pt {
-    if (s <= straightLen) return { x: left + r + s, y: top, angle: -Math.PI / 2 };
+  function pointAt(index: number): Pt {
+    let s = (index * step + offset) % totalLen;
+    const n = WHEEL_EU[index];
+
+    // Top straight (da direita para a esquerda)
+    if (s <= straightLen) {
+      return { x: rightX - s, y: topY, angle: -Math.PI / 2, n };
+    }
     s -= straightLen;
 
+    // Left arc
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = (-Math.PI / 2) + t * Math.PI;
-      return { x: right - r + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang };
+      const ang = (-Math.PI / 2) - t * Math.PI;
+      return { x: leftX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    if (s <= straightLen) return { x: right - r - s, y: bottom, angle: Math.PI / 2 };
+    // Bottom straight (da esquerda para a direita)
+    if (s <= straightLen) {
+      return { x: leftX + s, y: bottomY, angle: Math.PI / 2, n };
+    }
     s -= straightLen;
 
+    // Right arc
     const t = s / arcLen;
-    const ang = (Math.PI / 2) + t * Math.PI;
-    return { x: left + r + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang };
+    const ang = (Math.PI / 2) - t * Math.PI;
+    return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
   }
 
   const pts: Pt[] = [];
-  for (let i = 0; i < count; i++) pts.push(pointAt(i * step));
+  for (let i = 0; i < WHEEL_EU.length; i++) {
+    pts.push(pointAt(i));
+  }
   return pts;
 }
 
@@ -54,8 +77,6 @@ function selectionFill(sel: SelState, n: number) {
   const colors = getNumberColors(sel, n);
   if (colors.length === 0) return null;
   if (colors.length === 1) return colors[0];
-  
-  // Para SVG, usamos um ID de gradiente definido nos <defs>
   return `url(#grad-${n})`;
 }
 
@@ -71,17 +92,14 @@ export default function RaceTrack({
   sel: SelState;
   onPick: (n: number) => void;
 }) {
-  const pts = buildTrackPoints(WHEEL_EU.length);
+  const pts = buildTrackPoints();
   const viewW = 900;
-  const viewH = 200; // Sincronizado com buildTrackPoints
+  const viewH = 240;
 
   return (
     <div className="raceBox" aria-label="Race Profissional">
       <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
         <defs>
-          <filter id="premiumShadow" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.5" />
-          </filter>
           {WHEEL_EU.map(n => {
             const colors = getNumberColors(sel, n);
             if (colors.length <= 1) return null;
@@ -99,39 +117,48 @@ export default function RaceTrack({
           })}
         </defs>
 
-        {/* Fundo da Pista */}
+        {/* Fundo da Pista (Pista externa) */}
         <path
-          d="M 140,40 L 760,40 A 80,80 0 0 1 760,200 L 140,200 A 80,80 0 0 1 140,40 Z"
-          fill="rgba(0,0,0,0.6)"
-          stroke="rgba(255,255,255,0.1)"
+          d="M 170,30 L 730,30 A 90,90 0 0 1 730,210 L 170,210 A 90,90 0 0 1 170,30 Z"
+          fill="rgba(0,0,0,0.8)"
+          stroke="rgba(255,255,255,0.3)"
           strokeWidth="2"
         />
 
-        {/* Linhas Divisórias de Zonas (Baseadas na imagem de referência) */}
-        {/* Divisória Tiers / Orphelins (Esquerda) */}
-        <line x1="320" y1="40" x2="360" y2="200" stroke="#3b82f6" strokeWidth="3" strokeOpacity="0.8" />
+        {/* Linha interna da pista */}
+        <path
+          d="M 170,75 L 730,75 A 45,45 0 0 1 730,165 L 170,165 A 45,45 0 0 1 170,75 Z"
+          fill="none"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="2"
+        />
+
+        {/* Divisórias de Zonas baseadas na imagem */}
+        {/* TIER / ORPHELINS (Esquerda) */}
+        <line x1="280" y1="75" x2="360" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         
-        {/* Divisória Orphelins / Voisins (Centro-Esquerda) */}
-        <line x1="500" y1="40" x2="480" y2="200" stroke="#f97316" strokeWidth="3" strokeOpacity="0.8" />
+        {/* ORPHELINS / VOISINS (Centro) */}
+        <line x1="480" y1="75" x2="480" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         
-        {/* Divisória Voisins / Zero (Direita) */}
-        <path d="M 700,40 Q 750,120 700,200" fill="none" stroke="#eab308" strokeWidth="3" strokeOpacity="0.8" />
+        {/* VOISINS / ZERO (Direita) */}
+        <path d="M 680,75 Q 740,120 680,165" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
 
         {/* Textos das Zonas */}
-        <text x="230" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">TIERS</text>
-        <text x="425" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">ORPHELINS</text>
-        <text x="590" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">VOISINS</text>
-        <text x="780" y="125" textAnchor="middle" fontSize="18" fontWeight="900" fill="rgba(255,255,255,0.4)" letterSpacing="2">ZERO</text>
+        <text x="230" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">TIER</text>
+        <text x="410" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">ORPHELINS</text>
+        <text x="580" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">VOISINS</text>
+        <text x="750" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">ZERO</text>
 
         {/* Números da Pista */}
-        {WHEEL_EU.map((n, i) => {
-          const p = pts[i];
+        {pts.map((p) => {
+          const n = p.n;
           const base = colorOf(n);
           const scls = selClass(sel, n);
           const override = selectionFill(sel, n);
           const fill = override ?? `var(--${base})`;
           const textFill = needsDarkText(scls) ? "#111" : "#fff";
 
+          // Rotação para alinhar o retângulo com a curva
           const rotation = (p.angle * 180) / Math.PI + 90;
 
           return (
@@ -143,11 +170,11 @@ export default function RaceTrack({
             >
               {/* Célula de fundo */}
               <rect
-                x={p.x - 20}
-                y={p.y - 26}
-                width="40"
-                height="52"
-                rx="4"
+                x={p.x - 18}
+                y={p.y - 22}
+                width="36"
+                height="44"
+                rx="2"
                 fill={fill}
                 stroke="rgba(255,255,255,0.2)"
                 strokeWidth="1"
@@ -155,26 +182,15 @@ export default function RaceTrack({
                 className="raceCell"
               />
               
-              {/* Brilho superior */}
-              <rect
-                x={p.x - 16}
-                y={p.y - 22}
-                width="32"
-                height="10"
-                rx="2"
-                fill="rgba(255,255,255,0.1)"
-                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
-                pointerEvents="none"
-              />
-
               {/* Número */}
               <text 
                 x={p.x} 
-                y={p.y + 6} 
+                y={p.y + 5} 
                 textAnchor="middle" 
-                fontSize="16" 
-                fontWeight="1000" 
+                fontSize="14" 
+                fontWeight="bold" 
                 fill={textFill}
+                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 style={{ userSelect: 'none' }}
               >
                 {n}
