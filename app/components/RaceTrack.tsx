@@ -31,9 +31,6 @@ function buildTrackPoints(): Pt[] {
   const step = totalLen / WHEEL_EU.length;
 
   // Na imagem, o 0 está no extremo direito (meio da curva direita)
-  // O array WHEEL_EU começa com 0.
-  // Então o ponto 0 deve ser (W - paddingX, midY)
-  // No nosso cálculo de s, o extremo direito (meio da curva) ocorre em s = straightLen + arcLen/2
   const offset = straightLen + arcLen / 2;
 
   function pointAt(index: number): Pt {
@@ -158,9 +155,6 @@ export default function RaceTrack({
           const fill = override ?? `var(--${base})`;
           const textFill = needsDarkText(scls) ? "#111" : "#fff";
 
-          // Rotação para alinhar o retângulo com a curva
-          const rotation = (p.angle * 180) / Math.PI + 90;
-
           return (
             <g 
               key={n} 
@@ -168,17 +162,14 @@ export default function RaceTrack({
               style={{ cursor: "pointer" }}
               className="raceNode"
             >
-              {/* Célula de fundo */}
-              <rect
-                x={p.x - 18}
-                y={p.y - 22}
-                width="36"
-                height="44"
-                rx="2"
+              {/* Célula de fundo circular */}
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r="18"
                 fill={fill}
                 stroke="rgba(255,255,255,0.2)"
                 strokeWidth="1"
-                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 className="raceCell"
               />
               
@@ -190,7 +181,6 @@ export default function RaceTrack({
                 fontSize="14" 
                 fontWeight="bold" 
                 fill={textFill}
-                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
                 style={{ userSelect: 'none' }}
               >
                 {n}
