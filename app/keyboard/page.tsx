@@ -78,16 +78,19 @@ export default function KeyboardPage() {
           ))}
           
           {/* Estratégias Principais */}
-          {STRATEGIES.map((strat, i) => (
-            <button 
-              key={i} 
-              onClick={() => onMarkStrategy(strat.nums, i % 10)}
-              className="strat-btn"
-              style={{ background: "#262626", color: strat.color || "#fff" }}
-            >
-              {strat.name}
-            </button>
-          ))}
+          {STRATEGIES.map((strat, i) => {
+            const colorIdx = i === 3 ? 6 : i % 10;
+            return (
+              <button 
+                key={i} 
+                onClick={() => onMarkStrategy(strat.nums, colorIdx)}
+                className="strat-btn"
+                style={{ background: "#262626", color: strat.color || "#fff" }}
+              >
+                {strat.name}
+              </button>
+            );
+          })}
         </div>
       </div>
 

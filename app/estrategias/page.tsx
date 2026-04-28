@@ -29,8 +29,10 @@ export default function EstrategiasPage() {
 
   const onMarkStrategy = (nums: number[], idx: number) => {
     const bc = new BroadcastChannel("roulette_keyboard");
+    // Se for o Padrão de Saída Órfã (índice 3), usamos a cor 6 (ciano) para evitar o vermelho (índice 3)
+    const colorIndex = idx === 3 ? 6 : idx % 10;
     // Enviar o colorIndex para que o toggle funcione com a cor correta da estratégia
-    bc.postMessage({ type: "MARK_STRATEGY", value: nums, colorIndex: idx % 10 });
+    bc.postMessage({ type: "MARK_STRATEGY", value: nums, colorIndex });
     bc.close();
   };
 

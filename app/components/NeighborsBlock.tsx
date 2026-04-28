@@ -14,7 +14,8 @@ type Props = {
 
 export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, isMinimized, onToggle }: Props) {
   const handleMarkStrategy = (nums: number[], strategyIdx: number) => {
-    const colorIndex = strategyIdx % 10;
+    // Se for o Padrão de Saída Órfã (índice 3), usamos a cor 6 (ciano) para evitar o vermelho (índice 3)
+    const colorIndex = strategyIdx === 3 ? 6 : strategyIdx % 10;
     if (onMarkStrategy) {
       onMarkStrategy(nums, colorIndex);
     } else {
@@ -33,9 +34,10 @@ export default function NeighborsBlock({ history, sel, onPick, onMarkStrategy, i
       {!isMinimized && (
         <div className="strategiesList">
           {STRATEGIES.map((strategy, idx) => {
-            const colorKey = SEL_ORDER[idx % 10];
+            const colorIdx = idx === 3 ? 6 : idx % 10;
+            const colorKey = SEL_ORDER[colorIdx];
             const isActive = strategy.nums.length > 0 && sel.sets[colorKey]?.has(strategy.nums[0]);
-            const colorVar = `var(--selC${(idx % 10) + 1})`;
+            const colorVar = `var(--selC${colorIdx + 1})`;
             
             return (
               <div key={idx} className="strategyRow" style={{ borderLeft: `4px solid ${colorVar}` }}>
