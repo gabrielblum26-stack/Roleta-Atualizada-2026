@@ -9,8 +9,7 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack seguindo o formato da imagem:
- * - 0 à direita (centro vertical)
- * - Números distribuídos em uma pista oval
+ * - 0 à direita (centro vertical da curva direita)
  * - Ordem horária conforme WHEEL_EU
  */
 function buildTrackPoints(): Pt[] {
@@ -30,20 +29,28 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Na imagem, o 0 está no extremo direito (meio da curva direita)
-  const offset = straightLen + arcLen / 2;
-
+  // Na imagem, o 0 está no extremo direito (meio da curva direita).
+  // No nosso sistema de coordenadas SVG, o extremo direito da curva direita é o ponto final do percurso.
+  // O percurso termina no meio da curva direita se começarmos o cálculo corretamente.
+  // Vamos definir que o índice 0 (que é o número 0 no WHEEL_EU) deve estar em (rightX + r, midY).
+  
   function pointAt(index: number): Pt {
-    let s = (index * step + offset) % totalLen;
+    // Ajustamos s para que o índice 0 fique na posição (rightX + r, midY)
+    // Essa posição corresponde ao final do arco direito no nosso cálculo.
+    let s = (index * step + totalLen) % totalLen;
     const n = WHEEL_EU[index];
 
-    // Top straight (da direita para a esquerda)
+    // Arco Direito (descendo do topo para o fundo pela direita)
+    // No cálculo original, o arco direito é a última parte.
+    // Vamos redesenhar a lógica de s para ser mais intuitiva:
+    
+    // 1. Reta Superior (Direita -> Esquerda): 0 a straightLen
     if (s <= straightLen) {
       return { x: rightX - s, y: topY, angle: -Math.PI / 2, n };
     }
     s -= straightLen;
 
-    // Left arc
+    // 2. Arco Esquerdo: straightLen a straightLen + arcLen
     if (s <= arcLen) {
       const t = s / arcLen;
       const ang = (-Math.PI / 2) - t * Math.PI;
@@ -51,13 +58,13 @@ function buildTrackPoints(): Pt[] {
     }
     s -= arcLen;
 
-    // Bottom straight (da esquerda para a direita)
+    // 3. Reta Inferior (Esquerda -> Direita): ... a ... + straightLen
     if (s <= straightLen) {
       return { x: leftX + s, y: bottomY, angle: Math.PI / 2, n };
     }
     s -= straightLen;
 
-    // Right arc
+    // 4. Arco Direito: ... a ... + arcLen
     const t = s / arcLen;
     const ang = (Math.PI / 2) - t * Math.PI;
     return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
