@@ -1,16 +1,16 @@
 import { neighborsEU } from "./roulette";
 
 /**
- * 10 cores primárias de seleção
+ * 15 cores primárias de seleção
  */
-export const SEL_ORDER = Array.from({ length: 10 }, (_, i) => `c${i + 1}` as const);
+export const SEL_ORDER = Array.from({ length: 15 }, (_, i) => `c${i + 1}` as const);
 
 export type SelColor = (typeof SEL_ORDER)[number];
 
 export type SelMode = "neighbors" | "unique" | "terminalDisguised" | "sumDisguised" | "newMarking" | "zoneMarking";
 
 export type SelState = {
-  activeColorIndex: number; // Índice da cor selecionada manualmente (0..9)
+  activeColorIndex: number; // Índice da cor selecionada manualmente (0..14)
   sets: Record<SelColor, Set<number>>;
   strategyColors?: Record<string, string>; // Mapeamento de nome de estratégia para cor hexadecimal
 };
@@ -186,7 +186,7 @@ export function getNumberColors(sel: SelState, n: number): string[] {
 
 /**
  * Mantido para compatibilidade onde apenas uma classe é necessária.
- * Prioridade visual fixa: C10 > ... > C1
+ * Prioridade visual fixa: C15 > ... > C1
  */
 export function selClass(sel: SelState, n: number): "" | `selC${number}` {
   for (let i = SEL_ORDER.length - 1; i >= 0; i--) {

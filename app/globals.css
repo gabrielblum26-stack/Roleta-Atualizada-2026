@@ -11,7 +11,7 @@
   --black:#1c1c1c;
   --green:#0f7a3a;
 
-  /* seleção: 10 cores primárias */
+  /* seleção: 15 cores primárias */
 --selC1:#1a66ff;   /* azul */
 --selC2:#ffd000;   /* amarelo */
 --selC3:#26d07c;   /* verde */
@@ -22,6 +22,11 @@
 --selC8:#ff2d55;   /* rosa */
 --selC9:#ffffff;   /* branco */
 --selC10:#8e8e93;  /* cinza */
+--selC11:#ffcc00;  /* ouro */
+--selC12:#00ff00;  /* neon verde */
+--selC13:#ff00ff;  /* magenta */
+--selC14:#00ffff;  /* aqua */
+--selC15:#ff5e00;  /* coral */
 
 /* repetição no mapa */
   --highlight:#ffd54a;
