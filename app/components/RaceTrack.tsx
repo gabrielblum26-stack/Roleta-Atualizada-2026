@@ -9,8 +9,8 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack:
- * - 0 no EXTREMO DIREITO (centro da curva)
- * - Sequência 0, 26, 3, 35... subindo pela direita
+ * - 0 posicionado uma casa abaixo do extremo direito.
+ * - Ordem original da roleta europeia (WHEEL_EU).
  */
 function buildTrackPoints(): Pt[] {
   const W = 900;
@@ -29,47 +29,49 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Sequência da foto: 0, 26, 3, 35, 12, 28, 7, 29, 18, 22, 9, 31, 14, 20, 1, 33, 16, 24, 5, 10, 23, 8, 30, 11, 36, 13, 27, 6, 34, 17, 25, 2, 21, 4, 19, 15, 32
-  const reversedWheel = [WHEEL_EU[0], ...[...WHEEL_EU].slice(1).reverse()];
-
-  // Queremos que o índice 0 (número 0) esteja no extremo direito (rightX + r, midY).
-  // No nosso cálculo de s, o extremo direito (meio do arco direito) é s = arcLen / 2.
-  // Então o offset deve ser arcLen / 2 para que s=0 caia no meio do arco.
-  const offset = arcLen / 2;
+  // O extremo direito (centro do arco direito) é s = arcLen / 2.
+  // O usuário quer o 0 "uma casa abaixo" dessa posição.
+  // Como a sequência deve seguir a ordem da roleta, e queremos que ela suba ou desça corretamente,
+  // vamos definir o offset para que o índice 0 (número 0) fique uma casa (step) abaixo do centro.
+  // Centro do arco direito (ângulo 0) é arcLen / 2.
+  // "Abaixo" no arco direito significa aumentar o valor de s (indo em direção ao bottomY).
+  const offset = (arcLen / 2) + step;
 
   function pointAt(index: number): Pt {
-    // Subtraímos s para que a sequência suba (sentido anti-horário visual)
-    let s = (offset - (index * step) + totalLen * 10) % totalLen;
-    const n = reversedWheel[index];
+    // Usamos a ordem original WHEEL_EU.
+    // s aumenta conforme o índice aumenta, percorrendo a pista.
+    let s = (offset + (index * step)) % totalLen;
+    const n = WHEEL_EU[index];
 
-    // 1. Arco Direito (Subindo/Descendo pela direita)
+    // 1. Arco Direito (Descendo/Subindo pela direita)
+    // s=0 é o topo da curva direita. s=arcLen é o fundo da curva direita.
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = (Math.PI / 2) - t * Math.PI;
+      const ang = (-Math.PI / 2) + t * Math.PI;
       return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    // 2. Reta Superior (Direita -> Esquerda)
+    // 2. Reta Inferior (Direita -> Esquerda)
     if (s <= straightLen) {
-      return { x: rightX - s, y: topY, angle: -Math.PI / 2, n };
+      return { x: rightX - s, y: bottomY, angle: Math.PI / 2, n };
     }
     s -= straightLen;
 
-    // 3. Arco Esquerdo (Descendo/Subindo pela esquerda)
+    // 3. Arco Esquerdo (Subindo/Descendo pela esquerda)
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = (-Math.PI / 2) - t * Math.PI;
+      const ang = (Math.PI / 2) + t * Math.PI;
       return { x: leftX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    // 4. Reta Inferior (Esquerda -> Direita)
-    return { x: leftX + s, y: bottomY, angle: Math.PI / 2, n };
+    // 4. Reta Superior (Esquerda -> Direita)
+    return { x: leftX + s, y: topY, angle: -Math.PI / 2, n };
   }
 
   const pts: Pt[] = [];
-  for (let i = 0; i < reversedWheel.length; i++) {
+  for (let i = 0; i < WHEEL_EU.length; i++) {
     pts.push(pointAt(i));
   }
   return pts;
