@@ -9,8 +9,9 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack:
- * - 0 no canto inferior direito (início da subida pela curva direita)
- * - Sequência segue subindo pela direita e indo para a esquerda pelo topo
+ * - 0 no canto inferior direito
+ * - Sequência INVERTIDA (0, 26, 3, 35...) subindo pela curva direita
+ * - Isso corresponde exatamente à foto enviada
  */
 function buildTrackPoints(): Pt[] {
   const W = 900;
@@ -29,21 +30,15 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Na foto, o 0 está no canto inferior direito.
-  // Vamos definir o ponto de partida (s=0) como o canto inferior direito.
-  // Esse ponto é (rightX + r * cos(pi/2), midY + r * sin(pi/2)) = (rightX, bottomY).
-  // Mas para subir pela direita, o ângulo deve começar em pi/2 e diminuir.
-  
+  // Invertemos a ordem dos números para que do 0 suba o 26, 3, 35...
+  // A ordem original é [0, 32, 15, ..., 3, 26]
+  // Queremos que a renderização siga [0, 26, 3, 35, 12, 28, ...]
+  const reversedWheel = [WHEEL_EU[0], ...[...WHEEL_EU].slice(1).reverse()];
+
   function pointAt(index: number): Pt {
     let s = (index * step) % totalLen;
-    const n = WHEEL_EU[index];
+    const n = reversedWheel[index];
 
-    // 1. Reta Inferior (Direita -> Esquerda)
-    // Se s=0 é o canto inferior direito, e queremos seguir a ordem da roleta...
-    // Na roleta europeia: 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
-    // Na foto, do 0 para cima temos 26, 3, 35...
-    // Isso significa que a sequência do array WHEEL_EU deve SUBIR pela curva direita.
-    
     // 1. Arco Direito (Subindo: de baixo para cima pela direita)
     if (s <= arcLen) {
       const t = s / arcLen;
@@ -71,7 +66,7 @@ function buildTrackPoints(): Pt[] {
   }
 
   const pts: Pt[] = [];
-  for (let i = 0; i < WHEEL_EU.length; i++) {
+  for (let i = 0; i < reversedWheel.length; i++) {
     pts.push(pointAt(i));
   }
   return pts;
