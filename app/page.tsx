@@ -22,6 +22,7 @@ export default function Page() {
   const [selMode, setSelMode] = useState<SelMode>("neighbors");
   const [markingMode, setMarkingMode] = useState<"unique" | "cumulative">("cumulative");
   const [showEaster99, setShowEaster99] = useState(false);
+  const [onlyIntersections, setOnlyIntersections] = useState(false);
 
   // Estados para o Calculador de Distância
   const [distN1, setDistN1] = useState<number | null>(null);
@@ -74,6 +75,8 @@ export default function Page() {
         onMarkStrategy(nums, colorIndex);
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
+            } else if (event.data.type === "TOGGLE_INTERSECTIONS") {
+        setOnlyIntersections(event.data.value);
       } else if (event.data.type === "SET_ACTIVE_COLOR") {
         onColorChange(event.data.value);
       }
@@ -190,11 +193,39 @@ export default function Page() {
     });
   }
 
+  
+  // Lógica de Números Mesclados (Convergência Máxima)
+  const mergedNumbers = useMemo(() => {
+    const counts: Record<number, number> = {};
+    let maxCount = 0;
+
+    for (let n = 0; n <= 36; n++) {
+      const count = getNumberColors(sel, n).length;
+      if (count > 0) {
+        counts[n] = count;
+        if (count > maxCount) maxCount = count;
+      }
+    }
+
+    if (maxCount <= 1) return { numbers: [], maxCount: 0 };
+
+    const result = Object.entries(counts)
+      .filter(([_, count]) => count === maxCount)
+      .map(([n, _]) => parseInt(n));
+
+    return { numbers: result, maxCount };
+  }, [sel]);
+
   const streaks = useMemo(() => computeStreaks(history), [history]);
   const terminals = useMemo(() => computeTerminals(history), [history]);
 
   const getCellStyles = (n: number) => {
     const colors = getNumberColors(sel, n);
+    
+    if (onlyIntersections && mergedNumbers.maxCount > 1) {
+       if (colors.length < mergedNumbers.maxCount) return { opacity: 0.1, pointerEvents: 'none', transition: 'all 0.3s' };
+    }
+
     if (colors.length === 0) return {};
     if (colors.length === 1) return { backgroundColor: colors[0], boxShadow: `0 0 15px ${colors[0]}88` };
     const step = 100 / colors.length;
@@ -344,6 +375,27 @@ export default function Page() {
           </div>
         ))}
       </div>
+      {mergedNumbers.numbers.length > 0 && (
+        <div className="panel mergedStrip" style={{ marginTop: '10px', border: '2px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 15px' }}>
+            <span style={{ fontWeight: 'bold', color: '#3b82f6', whiteSpace: 'nowrap' }}>
+              MESCLADOS ({mergedNumbers.maxCount} MARCAÇÕES):
+            </span>
+            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {mergedNumbers.numbers.map((n) => (
+                <div
+                  key={n}
+                  className={`chip ${colorOf(n)}`}
+                  style={{ ...getCellStyles(n), width: '35px', height: '35px', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '50%', cursor: 'pointer', fontWeight: 'bold', color: '#fff' }}
+                  onClick={() => onSelect(n)}
+                >
+                  {n}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="main">
         <div className={`panel left ${minimized.history ? "minimized" : ""}`}>
