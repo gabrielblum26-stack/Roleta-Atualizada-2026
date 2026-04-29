@@ -42,28 +42,41 @@ export default function MovementPanel({
 
   // Pegar o último movimento para destaque
   const lastMovement = movements.length > 0 ? movements[0] : null;
+  const prevMovement = movements.length > 1 ? movements[1] : null;
+
   let lastDistance = 0;
   let lastDirection = "";
   let lastIsH = false;
 
-  let leftNum = -1;
-  let rightNum = -1;
+  // Novos campos: Soma e Projeções baseadas na soma
+  let sumDist = 0;
+  let sumLeftNum = -1;
+  let sumRightNum = -1;
 
   if (lastMovement) {
     lastIsH = lastMovement.h <= lastMovement.ah;
     lastDistance = lastIsH ? lastMovement.h : lastMovement.ah;
     lastDirection = lastIsH ? "H" : "A";
 
-    // Lógica ESQUERDA/DIREITA: X casas de intervalo significa o (X+1)º número
     const currentIdx = WHEEL_EU.indexOf(lastMovement.to);
     if (currentIdx >= 0) {
       const L = WHEEL_EU.length;
-      const step = lastDistance + 1;
-      
-      // ESQUERDA (Anti-Horário): X - (dist + 1)
-      leftNum = WHEEL_EU[(currentIdx - step + L * 10) % L];
-      // DIREITA (Horário): X + (dist + 1)
-      rightNum = WHEEL_EU[(currentIdx + step) % L];
+
+      // Lógica da SOMA dos últimos 2 deslocamentos
+      if (prevMovement) {
+        // Pega a distância do movimento anterior baseada no modo atual (curto/longo)
+        const prevIsH = mode === "shortest" ? prevMovement.h <= prevMovement.ah : prevMovement.h >= prevMovement.ah;
+        const prevDistance = prevIsH ? prevMovement.h : prevMovement.ah;
+        
+        // Soma dos últimos 2 (independente de direção)
+        sumDist = lastDistance + prevDistance;
+        
+        // Projeção baseada na SOMA saindo do número ATUAL
+        // ESQUERDA (Anti-Horário): atual - soma
+        sumLeftNum = WHEEL_EU[(currentIdx - sumDist + L * 10) % L];
+        // DIREITA (Horário): atual + soma
+        sumRightNum = WHEEL_EU[(currentIdx + sumDist) % L];
+      }
     }
   }
 
@@ -89,7 +102,7 @@ export default function MovementPanel({
   return (
     <div className="movementPanel">
       <div className="movementHeader">
-        <div className="movementTitle">Deslocamento (H/A) - Últimos 100</div>
+        <div className="movementTitle">DESLOCAMENTO (H/A) - ÚLTIMOS 100</div>
         <div className="movementControls">
           <div className="markColorPicker">
             {MARK_COLORS.map((c, idx) => (
@@ -101,7 +114,7 @@ export default function MovementPanel({
               />
             ))}
           </div>
-          <button className="btn-reset-marks" onClick={resetMarks} title="Resetar marcações de deslocamento">
+          <button className="btn-reset-marks" onClick={resetMarks}>
             RESET
           </button>
           <div className="movementModeSelector">
@@ -109,13 +122,13 @@ export default function MovementPanel({
               className={`modeBtn ${mode === "shortest" ? "active" : ""}`}
               onClick={() => setMode("shortest")}
             >
-              Curto
+              CURTO
             </button>
             <button
               className={`modeBtn ${mode === "longest" ? "active" : ""}`}
               onClick={() => setMode("longest")}
             >
-              Longo
+              LONGO
             </button>
           </div>
         </div>
@@ -124,35 +137,44 @@ export default function MovementPanel({
       {/* Seção de Destaque do Último Movimento */}
       {lastMovement && (
         <div className="movementHighlight">
-          <div className="highlightBox">
-            <div className="highlightLabel">H ATUAL</div>
-            <div className="highlightValue" style={{ color: lastIsH ? "#ffd000" : "#aaa" }}>
-              {lastMovement.h}
+          <div className="highlightRow">
+            <div className="highlightBox">
+              <div className="highlightLabel">HORÁRIO</div>
+              <div className="highlightValue" style={{ color: lastIsH ? "#ffd000" : "#aaa" }}>
+                {lastMovement.h}
+              </div>
+            </div>
+            <div className="highlightBox">
+              <div className="highlightLabel">ATUAL</div>
+              <div className="highlightValue" style={{ color: "#fff" }}>{lastMovement.to}</div>
+            </div>
+            <div className="highlightBox">
+              <div className="highlightLabel">ANTI-HORÁRIO</div>
+              <div className="highlightValue" style={{ color: !lastIsH ? "#ffd000" : "#aaa" }}>
+                {lastMovement.ah}
+              </div>
+            </div>
+            <div className="highlightBox">
+              <div className="highlightLabel">RESULTADO</div>
+              <div className="highlightValue" style={{ color: getMovementColor(lastDistance) }}>
+                {lastDirection}/{lastDistance}
+              </div>
             </div>
           </div>
-          <div className="highlightBox">
-            <div className="highlightLabel">ÚLTIMO</div>
-            <div className="highlightValue">{lastMovement.to}</div>
-          </div>
-          <div className="highlightBox">
-            <div className="highlightLabel">AH</div>
-            <div className="highlightValue" style={{ color: !lastIsH ? "#ffd000" : "#aaa" }}>
-              {lastMovement.ah}
+
+          <div className="highlightRow secondary">
+            <div className="highlightBox">
+              <div className="highlightLabel">SOMA ÚLT. 2</div>
+              <div className="highlightValue" style={{ color: "#ffd000" }}>{sumDist || "--"}</div>
             </div>
-          </div>
-          <div className="highlightBox">
-            <div className="highlightLabel">RESULTADO</div>
-            <div className="highlightValue" style={{ color: getMovementColor(lastDistance) }}>
-              {lastDirection}/{lastDistance}
+            <div className="highlightBox highlightEsquerda">
+              <div className="highlightLabel">ESQUERDA</div>
+              <div className="highlightValue" style={{ color: "#26d07c" }}>{sumLeftNum !== -1 ? sumLeftNum : "--"}</div>
             </div>
-          </div>
-          <div className="highlightBox">
-            <div className="highlightLabel">ESQUERDA</div>
-            <div className="highlightValue" style={{ color: "#26d07c" }}>{leftNum !== -1 ? leftNum : "--"}</div>
-          </div>
-          <div className="highlightBox">
-            <div className="highlightLabel">DIREITA</div>
-            <div className="highlightValue" style={{ color: "#26d07c" }}>{rightNum !== -1 ? rightNum : "--"}</div>
+            <div className="highlightBox highlightDireita">
+              <div className="highlightLabel">DIREITA</div>
+              <div className="highlightValue" style={{ color: "#26d07c" }}>{sumRightNum !== -1 ? sumRightNum : "--"}</div>
+            </div>
           </div>
         </div>
       )}
@@ -203,52 +225,84 @@ export default function MovementPanel({
       </div>
 
       <style jsx>{`
+        .movementHighlight {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+          margin-bottom: 15px;
+          background: rgba(255,255,255,0.02);
+          padding: 10px;
+          border-radius: 8px;
+          border: 1px solid rgba(255,255,255,0.05);
+        }
+        .highlightRow {
+          display: flex;
+          gap: 8px;
+          justify-content: space-between;
+        }
+        .highlightRow.secondary {
+          border-top: 1px solid rgba(255,255,255,0.08);
+          padding-top: 8px;
+        }
+        .highlightBox {
+          flex: 1;
+          background: rgba(0,0,0,0.4);
+          padding: 6px;
+          border-radius: 6px;
+          text-align: center;
+          border: 1px solid rgba(255,255,255,0.03);
+        }
+        .highlightEsquerda, .highlightDireita {
+           background: rgba(38, 208, 124, 0.05);
+           border-color: rgba(38, 208, 124, 0.2);
+        }
+        .highlightLabel {
+          font-size: 8px;
+          color: #aaa;
+          font-weight: 800;
+          margin-bottom: 2px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .highlightValue {
+          font-size: 16px;
+          font-weight: 900;
+        }
         .movementControls {
           display: flex;
           align-items: center;
-          gap: 10px;
+          gap: 8px;
         }
         .markColorPicker {
           display: flex;
-          gap: 5px;
-          background: rgba(0,0,0,0.2);
+          gap: 4px;
+          background: rgba(0,0,0,0.3);
           padding: 4px 8px;
           border-radius: 20px;
-          border: 1px solid rgba(255,255,255,0.1);
         }
         .markColorCircle {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           border-radius: 50%;
           cursor: pointer;
-          border: 2px solid transparent;
-          transition: all 0.2s;
+          border: 1.5px solid transparent;
         }
         .markColorCircle.active {
           border-color: #fff;
-          transform: scale(1.2);
         }
         .btn-reset-marks {
           background: #ef4444;
           color: #fff;
           border: none;
-          padding: 4px 8px;
+          padding: 4px 10px;
           border-radius: 4px;
           font-size: 10px;
-          font-weight: bold;
+          font-weight: 900;
           cursor: pointer;
-          text-transform: uppercase;
-        }
-        .btn-reset-marks:hover {
-          background: #dc2626;
         }
         .movementGridCell {
           cursor: pointer;
-          transition: all 0.2s;
           border: 1px solid rgba(255,255,255,0.05);
-        }
-        .movementGridCell:hover {
-          background: rgba(255,255,255,0.05);
         }
       `}</style>
     </div>
