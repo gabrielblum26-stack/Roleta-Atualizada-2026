@@ -5,16 +5,6 @@ import { STRATEGIES } from "../lib/strategies";
 
 export default function EstrategiasPage() {
   const [history, setHistory] = useState<number[]>([]);
-  const [onlyIntersections, setOnlyIntersections] = useState(false);
-
-  const toggleIntersections = () => {
-    const newValue = !onlyIntersections;
-    setOnlyIntersections(newValue);
-    const bc = new BroadcastChannel("roulette_keyboard");
-    bc.postMessage({ type: "TOGGLE_INTERSECTIONS", value: newValue });
-    bc.close();
-  };
-
 
   useEffect(() => {
     // Forçar tema escuro
@@ -60,25 +50,6 @@ export default function EstrategiasPage() {
           <div style={{ display: "flex", alignItems: "center", gap: "5px" }}>
             <div style={{ width: "12px", height: "12px", background: "#262626", borderRadius: "2px", border: "1px solid #444" }}></div> Não bateu
           </div>
-        
-        <div style={{ marginTop: "15px" }}>
-          <button 
-            onClick={toggleIntersections}
-            style={{
-              width: "100%",
-              padding: "8px",
-              background: onlyIntersections ? "#3b82f6" : "#262626",
-              color: "#fff",
-              border: "1px solid #3b82f6",
-              borderRadius: "4px",
-              cursor: "pointer",
-              fontWeight: "bold",
-              fontSize: "13px",
-              transition: "all 0.3s"
-            }}
-          >
-            {onlyIntersections ? "MOSTRANDO APENAS INTERSECÇÕES" : "MOSTRAR APENAS INTERSECÇÕES"}
-          </button>
         </div>
       </div>
 

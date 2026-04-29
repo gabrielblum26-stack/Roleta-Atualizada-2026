@@ -75,8 +75,6 @@ export default function Page() {
         onMarkStrategy(nums, colorIndex);
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
-            } else if (event.data.type === "TOGGLE_INTERSECTIONS") {
-        setOnlyIntersections(event.data.value);
       } else if (event.data.type === "SET_ACTIVE_COLOR") {
         onColorChange(event.data.value);
       }
@@ -164,6 +162,7 @@ export default function Page() {
   }
 
   function onResetColors() {
+    setHistory([]);
     setSel(initSel());
   }
 
@@ -222,8 +221,11 @@ export default function Page() {
   const getCellStyles = (n: number) => {
     const colors = getNumberColors(sel, n);
     
+    // Filtro de intersecção
     if (onlyIntersections && mergedNumbers.maxCount > 1) {
-       if (colors.length < mergedNumbers.maxCount) return { opacity: 0.1, pointerEvents: 'none', transition: 'all 0.3s' };
+      if (colors.length < mergedNumbers.maxCount) {
+        return { opacity: 0.1, pointerEvents: 'none' as const, transition: 'all 0.3s' };
+      }
     }
 
     if (colors.length === 0) return {};
@@ -375,6 +377,7 @@ export default function Page() {
           </div>
         ))}
       </div>
+
       {mergedNumbers.numbers.length > 0 && (
         <div className="panel mergedStrip" style={{ marginTop: '10px', border: '2px solid #3b82f6', background: 'rgba(59, 130, 246, 0.1)', borderRadius: '8px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', padding: '10px 15px' }}>
@@ -435,6 +438,8 @@ export default function Page() {
               sel={sel} 
               onPick={onSelect} 
               onMarkStrategy={onMarkStrategy}
+              onlyIntersections={onlyIntersections}
+              onToggleIntersections={() => setOnlyIntersections(!onlyIntersections)}
               isMinimized={minimized.neighbors}
               onToggle={() => toggleMin("neighbors")}
             />
@@ -478,56 +483,75 @@ export default function Page() {
             </div>
           </div>
         </div>
-        <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>
-          <div className="panelHeader">
-            <div className="sectionTitle">Racetrack & Mapa</div>
-            <button className="btn-min" onClick={() => toggleMin("trackMap")}>{minimized.trackMap ? "+" : "−"}</button>
+
+        <div className="rightCol">
+          <div className={`panel-wrap ${minimized.trackMap ? "minimized" : ""}`}>
+            <div className="panelHeader">
+              <div className="sectionTitle">Mapa da Mesa</div>
+              <button className="btn-min" onClick={() => toggleMin("trackMap")}>{minimized.trackMap ? "+" : "−"}</button>
+            </div>
+            {!minimized.trackMap && (
+              <TableMap sel={sel} onPick={onSelect} repHighlights={repHighlights} getCellStyles={getCellStyles} />
+            )}
           </div>
-          {!minimized.trackMap && (
-            <>
-              <RaceTrack sel={sel} onPick={onSelect} />
-              <TableMap sel={sel} rep={repHighlights} onPick={onSelect} />
-            </>
+
+          <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
+            <div className="panelHeader">
+              <div className="sectionTitle">RaceTrack</div>
+              <button className="btn-min" onClick={() => toggleMin("raceDist")}>{minimized.raceDist ? "+" : "−"}</button>
+            </div>
+            {!minimized.raceDist && (
+              <RaceTrack sel={sel} onPick={onSelect} getCellStyles={getCellStyles} />
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="bottomRow">
+        <div className={`panel ${minimized.terminals ? "minimized" : ""}`}>
+          <div className="panelHeader">
+            <div className="sectionTitle">Terminais</div>
+            <button className="btn-min" onClick={() => toggleMin("terminals")}>{minimized.terminals ? "+" : "−"}</button>
+          </div>
+          {!minimized.terminals && (
+            <div className="terminalsGrid">
+              {terminals.map((t) => (
+                <TerminalCard key={t.terminal} terminal={t} />
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className={`panel ${minimized.reps ? "minimized" : ""}`}>
+          <div className="panelHeader">
+            <div className="sectionTitle">Métricas</div>
+            <button className="btn-min" onClick={() => toggleMin("reps")}>{minimized.reps ? "+" : "−"}</button>
+          </div>
+          {!minimized.reps && (
+            <div className="metricsGrid">
+              <Metric label="Vermelhos" value={streaks.red} total={history.length} />
+              <Metric label="Pretos" value={streaks.black} total={history.length} />
+              <Metric label="Pares" value={streaks.even} total={history.length} />
+              <Metric label="Ímpares" value={streaks.odd} total={history.length} />
+              <Metric label="1-18" value={streaks.low} total={history.length} />
+              <Metric label="19-36" value={streaks.high} total={history.length} />
+            </div>
+          )}
+        </div>
+
+        <div className={`panel ${minimized.zone ? "minimized" : ""}`}>
+          <div className="panelHeader">
+            <div className="sectionTitle">Zona do Último</div>
+            <button className="btn-min" onClick={() => toggleMin("zone")}>{minimized.zone ? "+" : "−"}</button>
+          </div>
+          {!minimized.zone && topZonePattern && (
+            <div className="zonePattern">
+              <div>Último: {topZonePattern.xExample}</div>
+              <div>Frequência: {topZonePattern.count}</div>
+            </div>
           )}
         </div>
       </div>
-
-      <div className={`panel terminals ${minimized.terminals ? "minimized" : ""}`} aria-label="Terminais">
-        <div className="panelHeader">
-          <div className="sectionTitle">Terminais</div>
-          <button className="btn-min" onClick={() => toggleMin("terminals")}>{minimized.terminals ? "+" : "−"}</button>
-        </div>
-        {!minimized.terminals && (
-          <div className="terminalsGrid">
-            {terminals.map((t) => <TerminalCard key={t.d} s={t} />)}
-          </div>
-        )}
-      </div>
-
-      <div className={`panel reps ${minimized.reps ? "minimized" : ""}`} aria-label="Repetições">
-        <div className="panelHeader">
-          <div className="sectionTitle">Repetições</div>
-          <button className="btn-min" onClick={() => toggleMin("reps")}>{minimized.reps ? "+" : "−"}</button>
-        </div>
-        {!minimized.reps && (
-          <div className="repsGrid">
-            <Metric title="VERMELHO" value={streaks.color.key === "red" ? streaks.color.count : null} />
-            <Metric title="PRETO" value={streaks.color.key === "black" ? streaks.color.count : null} />
-            <Metric title="PAR" value={streaks.parity.key === "even" ? streaks.parity.count : null} />
-            <Metric title="ÍMPAR" value={streaks.parity.key === "odd" ? streaks.parity.count : null} />
-            <Metric title="BAIXO" value={streaks.half.key === "low" ? streaks.half.count : null} />
-            <Metric title="ALTO" value={streaks.half.key === "high" ? streaks.half.count : null} />
-            <Metric title="COL 1" value={streaks.column.key === 1 ? streaks.column.count : null} />
-            <Metric title="COL 2" value={streaks.column.key === 2 ? streaks.column.count : null} />
-            <Metric title="COL 3" value={streaks.column.key === 3 ? streaks.column.count : null} />
-            <Metric title="1ª DUZ" value={streaks.dozen.key === 1 ? streaks.dozen.count : null} />
-            <Metric title="2ª DUZ" value={streaks.dozen.key === 2 ? streaks.dozen.count : null} />
-            <Metric title="3ª DUZ" value={streaks.dozen.key === 3 ? streaks.dozen.count : null} />
-          </div>
-        )}
-      </div>
-
-      <div className="versionBadge">v2.5.0</div>
     </div>
   );
 }
