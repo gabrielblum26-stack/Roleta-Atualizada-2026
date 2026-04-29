@@ -9,8 +9,8 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack:
- * - 0 no topo da curva direita (início da descida)
- * - Sequência segue descendo pela direita e indo para a esquerda por baixo
+ * - 0 no canto inferior direito (início da subida pela curva direita)
+ * - Sequência segue subindo pela direita e indo para a esquerda pelo topo
  */
 function buildTrackPoints(): Pt[] {
   const W = 900;
@@ -29,38 +29,45 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Na foto, o 0 está no topo da curva direita.
-  // Vamos definir o ponto de partida (s=0) como o topo da curva direita.
-  // Esse ponto é (rightX, topY).
+  // Na foto, o 0 está no canto inferior direito.
+  // Vamos definir o ponto de partida (s=0) como o canto inferior direito.
+  // Esse ponto é (rightX + r * cos(pi/2), midY + r * sin(pi/2)) = (rightX, bottomY).
+  // Mas para subir pela direita, o ângulo deve começar em pi/2 e diminuir.
   
   function pointAt(index: number): Pt {
     let s = (index * step) % totalLen;
     const n = WHEEL_EU[index];
 
-    // 1. Arco Direito (Descendo: do topo para o fundo pela direita)
+    // 1. Reta Inferior (Direita -> Esquerda)
+    // Se s=0 é o canto inferior direito, e queremos seguir a ordem da roleta...
+    // Na roleta europeia: 0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26
+    // Na foto, do 0 para cima temos 26, 3, 35...
+    // Isso significa que a sequência do array WHEEL_EU deve SUBIR pela curva direita.
+    
+    // 1. Arco Direito (Subindo: de baixo para cima pela direita)
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = (-Math.PI / 2) + t * Math.PI;
+      const ang = (Math.PI / 2) - t * Math.PI;
       return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    // 2. Reta Inferior (Direita -> Esquerda)
+    // 2. Reta Superior (Direita -> Esquerda)
     if (s <= straightLen) {
-      return { x: rightX - s, y: bottomY, angle: Math.PI / 2, n };
+      return { x: rightX - s, y: topY, angle: -Math.PI / 2, n };
     }
     s -= straightLen;
 
-    // 3. Arco Esquerdo (Subindo: do fundo para o topo pela esquerda)
+    // 3. Arco Esquerdo (Descendo: de cima para baixo pela esquerda)
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = (Math.PI / 2) + t * Math.PI;
+      const ang = (-Math.PI / 2) - t * Math.PI;
       return { x: leftX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    // 4. Reta Superior (Esquerda -> Direita)
-    return { x: leftX + s, y: topY, angle: -Math.PI / 2, n };
+    // 4. Reta Inferior (Esquerda -> Direita)
+    return { x: leftX + s, y: bottomY, angle: Math.PI / 2, n };
   }
 
   const pts: Pt[] = [];
