@@ -529,12 +529,12 @@ export default function Page() {
           </div>
           {!minimized.reps && (
             <div className="metricsGrid">
-              <Metric title="Vermelhos" value={streaks.red} />
-              <Metric title="Pretos" value={streaks.black} />
-              <Metric title="Pares" value={streaks.even} />
-              <Metric title="Ímpares" value={streaks.odd} />
-              <Metric title="1-18" value={streaks.low} />
-              <Metric title="19-36" value={streaks.high} />
+              <Metric title="Vermelhos" value={streaks.color.key === "red" ? streaks.color.count : 0} />
+              <Metric title="Pretos" value={streaks.color.key === "black" ? streaks.color.count : 0} />
+              <Metric title="Pares" value={streaks.parity.key === "even" ? streaks.parity.count : 0} />
+              <Metric title="Ímpares" value={streaks.parity.key === "odd" ? streaks.parity.count : 0} />
+              <Metric title="1-18" value={streaks.half.key === "low" ? streaks.half.count : 0} />
+              <Metric title="19-36" value={streaks.half.key === "high" ? streaks.half.count : 0} />
             </div>
           )}
         </div>
