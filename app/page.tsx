@@ -291,6 +291,13 @@ export default function Page() {
           <button className="btn btn-keyboard" onClick={openKeyboard} style={{ background: "#9333ea", color: "#fff" }}>
             KEYBOARD
           </button>
+          <button 
+            className="btn btn-contador" 
+            onClick={() => window.open('/contador', 'RouletteContador', 'width=1100,height=800')} 
+            style={{ background: "#f59e0b", color: "#fff" }}
+          >
+            CONTADOR
+          </button>
           <button className="btn btn-strategies" onClick={openStrategies} style={{ background: "#22c55e", color: "#fff" }}>
             ESTRATEGIAS
           </button>
