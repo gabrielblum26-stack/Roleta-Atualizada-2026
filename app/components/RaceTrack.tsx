@@ -3,13 +3,10 @@
 import React from "react";
 import { WHEEL_EU, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
-import { selClass, getNumberColors } from "../lib/selection";
+import { getNumberColors } from "../lib/selection";
 
 type Pt = { x: number; y: number; angle: number; n: number };
 
-/**
- * Constrói os pontos da Racetrack com bolinhas
- */
 function buildTrackPoints(): Pt[] {
   const W = 900;
   const H = 240;
@@ -27,7 +24,6 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Offset para alinhar o 0 no extremo direito
   const offset = (arcLen / 2) + step;
 
   function pointAt(index: number): Pt {
@@ -70,13 +66,17 @@ function selectionFill(sel: SelState, n: number) {
   return `url(#grad-race-${n})`;
 }
 
+type Props = {
+  sel: SelState;
+  onPick: (n: number) => void;
+  getCellStyles: (n: number) => React.CSSProperties;
+};
+
 export default function RaceTrack({
   sel,
   onPick,
-}: {
-  sel: SelState;
-  onPick: (n: number) => void;
-}) {
+  getCellStyles
+}: Props) {
   const pts = buildTrackPoints();
   const viewW = 900;
   const viewH = 240;
@@ -102,7 +102,6 @@ export default function RaceTrack({
           })}
         </defs>
 
-        {/* Fundo da Pista */}
         <path
           d="M 170,30 L 730,30 A 90,90 0 0 1 730,210 L 170,210 A 90,90 0 0 1 170,30 Z"
           fill="rgba(0,0,0,0.8)"
@@ -117,7 +116,6 @@ export default function RaceTrack({
           strokeWidth="2"
         />
 
-        {/* Divisórias de Zonas */}
         <line x1="280" y1="75" x2="360" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         <line x1="480" y1="75" x2="480" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
         <path d="M 680,75 Q 740,120 680,165" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
@@ -127,18 +125,18 @@ export default function RaceTrack({
         <text x="580" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">VOISINS</text>
         <text x="750" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">ZERO</text>
 
-        {/* Números da Pista (Bolinhas) */}
         {pts.map((p) => {
           const n = p.n;
           const base = colorOf(n);
           const override = selectionFill(sel, n);
           const fill = override ?? `var(--${base})`;
+          const customStyles = getCellStyles(n);
           
           return (
             <g 
               key={n} 
               onClick={() => onPick(n)} 
-              style={{ cursor: "pointer" }}
+              style={{ cursor: "pointer", ...customStyles }}
               className="raceNode"
             >
               <circle

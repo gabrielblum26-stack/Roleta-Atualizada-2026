@@ -2,7 +2,7 @@
 
 import { TABLE_ROWS, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
-import { selClass, getNumberColors } from "../lib/selection";
+import { getNumberColors } from "../lib/selection";
 
 export type RepHighlight =
   | "red"
@@ -18,37 +18,27 @@ export type RepHighlight =
   | "col2"
   | "col3";
 
+type Props = {
+  sel: SelState;
+  repHighlights: Set<RepHighlight>;
+  onPick: (n: number) => void;
+  getCellStyles: (n: number) => React.CSSProperties;
+};
+
 export default function TableMap({
   sel,
-  rep,
+  repHighlights,
   onPick,
-}: {
-  sel: SelState;
-  rep: Set<RepHighlight>;
-  onPick: (n: number) => void;
-}) {
+  getCellStyles
+}: Props) {
   const rowToCol: RepHighlight[] = ["col3", "col2", "col1"];
-
-  const getCellStyles = (n: number) => {
-    const colors = getNumberColors(sel, n);
-    if (colors.length === 0) return {};
-    if (colors.length === 1) return { backgroundColor: colors[0], boxShadow: `0 0 15px ${colors[0]}88` };
-    
-    // Gradiente para múltiplas cores
-    const step = 100 / colors.length;
-    const gradientParts = colors.map((c, i) => `${c} ${i * step}%, ${c} ${(i + 1) * step}%`);
-    return {
-      background: `linear-gradient(135deg, ${gradientParts.join(", ")})`,
-      boxShadow: `0 0 15px ${colors[0]}88`
-    };
-  };
 
   const cellCls = (n: number) => {
     const base = `cell ${colorOf(n)}`;
     return base;
   };
 
-  const betCls = (k: RepHighlight) => `bet ${rep.has(k) ? "rep" : ""}`.trim();
+  const betCls = (k: RepHighlight) => `bet ${repHighlights.has(k) ? "rep" : ""}`.trim();
 
   return (
     <div className="mapBox" aria-label="Mapa completo (clicável para seleção)">
