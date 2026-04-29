@@ -516,7 +516,7 @@ export default function Page() {
           {!minimized.terminals && (
             <div className="terminalsGrid">
               {terminals.map((t) => (
-                <TerminalCard key={t.terminal} terminal={t} />
+                <TerminalCard key={t.d} s={t} />
               ))}
             </div>
           )}
