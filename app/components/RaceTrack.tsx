@@ -9,8 +9,8 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack:
- * - 0 no CENTRO da curva direita (onde o 3 estava antes)
- * - Sequência segue a ordem da foto (0, 26, 3, 35...)
+ * - 0 no EXTREMO DIREITO (centro da curva)
+ * - Sequência 0, 26, 3, 35... subindo pela direita
  */
 function buildTrackPoints(): Pt[] {
   const W = 900;
@@ -29,20 +29,20 @@ function buildTrackPoints(): Pt[] {
   const totalLen = 2 * straightLen + 2 * arcLen;
   const step = totalLen / WHEEL_EU.length;
 
-  // Invertemos a ordem dos números para que do 0 suba o 26, 3, 35...
+  // Sequência da foto: 0, 26, 3, 35, 12, 28, 7, 29, 18, 22, 9, 31, 14, 20, 1, 33, 16, 24, 5, 10, 23, 8, 30, 11, 36, 13, 27, 6, 34, 17, 25, 2, 21, 4, 19, 15, 32
   const reversedWheel = [WHEEL_EU[0], ...[...WHEEL_EU].slice(1).reverse()];
 
-  // Na versão anterior, o s=0 era o início do arco direito (embaixo).
-  // O centro do arco direito ocorre em s = arcLen / 2.
-  // Queremos que o índice 0 (o número 0) esteja nesse centro.
-  // Então aplicamos um offset negativo de arcLen / 2.
-  const offset = - (arcLen / 2);
+  // Queremos que o índice 0 (número 0) esteja no extremo direito (rightX + r, midY).
+  // No nosso cálculo de s, o extremo direito (meio do arco direito) é s = arcLen / 2.
+  // Então o offset deve ser arcLen / 2 para que s=0 caia no meio do arco.
+  const offset = arcLen / 2;
 
   function pointAt(index: number): Pt {
-    let s = (index * step + offset + totalLen * 2) % totalLen;
+    // Subtraímos s para que a sequência suba (sentido anti-horário visual)
+    let s = (offset - (index * step) + totalLen * 10) % totalLen;
     const n = reversedWheel[index];
 
-    // 1. Arco Direito (Subindo: de baixo para cima pela direita)
+    // 1. Arco Direito (Subindo/Descendo pela direita)
     if (s <= arcLen) {
       const t = s / arcLen;
       const ang = (Math.PI / 2) - t * Math.PI;
@@ -56,7 +56,7 @@ function buildTrackPoints(): Pt[] {
     }
     s -= straightLen;
 
-    // 3. Arco Esquerdo (Descendo: de cima para baixo pela esquerda)
+    // 3. Arco Esquerdo (Descendo/Subindo pela esquerda)
     if (s <= arcLen) {
       const t = s / arcLen;
       const ang = (-Math.PI / 2) - t * Math.PI;
