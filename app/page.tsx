@@ -69,7 +69,7 @@ export default function Page() {
         addNumber(event.data.value);
       } else if (event.data.type === "MARK_STRATEGY") {
         const nums = event.data.value as number[];
-        const colorIndex = event.data.colorIndex; // Pode ser undefined
+        const colorIndex = event.data.colorIndex;
         onMarkStrategy(nums, colorIndex);
       } else if (event.data.type === "RESET_COLORS") {
         onResetColors();
@@ -78,7 +78,7 @@ export default function Page() {
       }
     };
     return () => bc.close();
-  }, [markingMode, sel]); // Mantemos sel como dependência para que onMarkStrategy acesse o estado atualizado
+  }, [markingMode, sel]);
 
   const openKeyboard = () => {
     const width = 500;
@@ -173,7 +173,6 @@ export default function Page() {
 
   function onMarkStrategy(nums: number[], colorIndex?: number) {
     setSel((prev) => {
-      // Usar a cor fornecida ou a cor ativa atual
       const targetColorIndex = colorIndex !== undefined ? colorIndex : prev.activeColorIndex;
       const tempSel = setActiveColor(prev, targetColorIndex);
       return markMultiple(tempSel, nums, markingMode);
@@ -218,9 +217,7 @@ export default function Page() {
     const idx2 = WHEEL_EU.indexOf(n2);
     const L = WHEEL_EU.length;
     
-    // Sentido Horário (H): de n1 para n2 indo para a direita no array
     const h = (idx2 - idx1 + L) % L;
-    // Sentido Anti-Horário (AH): de n1 para n2 indo para a esquerda no array
     const ah = (idx1 - idx2 + L) % L;
     
     return { h, ah };
@@ -237,39 +234,6 @@ export default function Page() {
       <div className="panel topbar">
         <div className="topbarLine">
           <div className="userGreeting">Olá, Cleber!</div>
-          
-          {/* Calculador de Distância */}
-          <div className="distCalcWrap">
-            <div className="distInputGroup">
-              <input 
-                type="number" 
-                placeholder="N1" 
-                value={distN1} 
-                onChange={(e) => setDistN1(e.target.value)}
-                className="distInput"
-              />
-              <input 
-                type="number" 
-                placeholder="N2" 
-                value={distN2} 
-                onChange={(e) => setDistN2(e.target.value)}
-                className="distInput"
-              />
-            </div>
-            {calcDist && (
-              <div className="distResults">
-                <div className="distItem">
-                  <span className="distLabel">H:</span>
-                  <span className="distValue">{calcDist.h}</span>
-                </div>
-                <div className="distItem">
-                  <span className="distLabel">AH:</span>
-                  <span className="distValue">{calcDist.ah}</span>
-                </div>
-              </div>
-            )}
-          </div>
-
           <label>Digite (vírgula):</label>
           <div className="inputWrap">
             <input
@@ -372,55 +336,6 @@ export default function Page() {
         ))}
       </div>
 
-      {topZonePattern && (
-        <div className="panel zoneStrip" aria-label="Padrão de zona (Top)">
-          {topZonePattern && (
-            <div className="zone3">
-              <div className="zoneHead">
-                <div
-                  className={`chip ${colorOf(topZonePattern.xExample)}`}
-                  style={getCellStyles(topZonePattern.xExample)}
-                  onClick={() => onSelect(topZonePattern.xExample)}
-                  title="X exemplo (clique seleciona)"
-                >
-                  {topZonePattern.triggerKind === "T"
-                    ? topZonePattern.triggerLabel.replace("Terminal ", "")
-                    : topZonePattern.triggerKind === "D"
-                    ? topZonePattern.triggerLabel.replace("Disfarçado ", "")
-                    : ""}
-                </div>
-                <div className="zoneMeta">
-                  <div className="zoneCount">{topZonePattern.count}x</div>
-                  <div className="zoneBadges">
-                    <span className="zb">{topZonePattern.triggerLabel}</span>
-                    {topZonePattern.triggerMembers.length > 1 && (
-                      <span className="zb">{topZonePattern.triggerMembers.join(", ")}</span>
-                    )}
-                  </div>
-                </div>
-              </div>
-              <div className="zoneZones">
-                {[0, 3, 6].map((off) => (
-                  <div key={off} className="zone3">
-                    {topZonePattern.zones9.slice(off, off + 3).map((n, idx) => (
-                      <div
-                        key={idx}
-                        className={`chip chipSmall ${colorOf(n)}`}
-                        style={getCellStyles(n)}
-                        onClick={() => onSelect(n)}
-                        title="Número da zona (clique seleciona)"
-                      >
-                        {n}
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
       <div className="main">
         <div className={`panel left ${minimized.history ? "minimized" : ""}`}>
           <div className="panelHeader">
@@ -464,7 +379,42 @@ export default function Page() {
             />
           </div>
           <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`}>
-            <MovementPanel history={history} />
+            <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`} style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
+              <MovementPanel history={history} />
+              
+              {/* Calculador de Distância - Agora dentro do bloco Deslocamento */}
+              <div className="panel distCalcInside">
+                <div className="distCalcTitle">CALCULADORA DE CASAS</div>
+                <div className="distCalcContent">
+                  <div className="distInputGroup">
+                    <input 
+                      type="number" 
+                      placeholder="N1" 
+                      value={distN1} 
+                      onChange={(e) => setDistN1(e.target.value)}
+                      className="distInput"
+                    />
+                    <input 
+                      type="number" 
+                      placeholder="N2" 
+                      value={distN2} 
+                      onChange={(e) => setDistN2(e.target.value)}
+                      className="distInput"
+                    />
+                  </div>
+                  <div className="distResults">
+                    <div className="distItem">
+                      <span className="distLabel">HORÁRIO:</span>
+                      <span className="distValue">{calcDist ? calcDist.h : "--"}</span>
+                    </div>
+                    <div className="distItem">
+                      <span className="distLabel">ANTI-HORÁRIO:</span>
+                      <span className="distValue">{calcDist ? calcDist.ah : "--"}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
         <div className={`panel right ${minimized.trackMap ? "minimized" : ""}`}>

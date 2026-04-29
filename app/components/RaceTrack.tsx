@@ -5,57 +5,60 @@ import { WHEEL_EU, colorOf } from "../lib/roulette";
 import type { SelState } from "../lib/selection";
 import { selClass, getNumberColors } from "../lib/selection";
 
-// Pontos da pista baseados em uma geometria oval de 900x240
-type Pt = { x: number; y: number; angle: number };
+type Pt = { x: number; y: number; angle: number; n: number };
 
-function buildTrackPoints(count: number): Pt[] {
+/**
+ * Constrói os pontos da Racetrack com bolinhas
+ */
+function buildTrackPoints(): Pt[] {
   const W = 900;
   const H = 240;
-  const r = 90; // Raio das curvas
-  const leftX = 120;
-  const rightX = 780;
-  const topY = 30;
-  const bottomY = 210;
-  const midY = (topY + bottomY) / 2;
+  const r = 90; 
+  const paddingX = 80;
+  const straightLen = W - 2 * paddingX - 2 * r;
+  
+  const leftX = paddingX + r;
+  const rightX = W - paddingX - r;
+  const topY = (H / 2) - r;
+  const bottomY = (H / 2) + r;
+  const midY = H / 2;
 
-  const straightLen = rightX - leftX;
   const arcLen = Math.PI * r;
   const totalLen = 2 * straightLen + 2 * arcLen;
-  const step = totalLen / count;
+  const step = totalLen / WHEEL_EU.length;
 
-  function pointAt(s: number): Pt {
-    // Topo reto (da esquerda para a direita)
-    if (s <= straightLen) {
-      return { x: leftX + s, y: topY, angle: -Math.PI / 2 };
-    }
-    s -= straightLen;
+  // Offset para alinhar o 0 no extremo direito
+  const offset = (arcLen / 2) + step;
 
-    // Curva direita
+  function pointAt(index: number): Pt {
+    let s = (offset + (index * step)) % totalLen;
+    const n = WHEEL_EU[index];
+
     if (s <= arcLen) {
       const t = s / arcLen;
-      const ang = -Math.PI / 2 + t * Math.PI;
-      return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang };
+      const ang = (-Math.PI / 2) + t * Math.PI;
+      return { x: rightX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
     }
     s -= arcLen;
 
-    // Base reta (da direita para a esquerda)
     if (s <= straightLen) {
-      return { x: rightX - s, y: bottomY, angle: Math.PI / 2 };
+      return { x: rightX - s, y: bottomY, angle: Math.PI / 2, n };
     }
     s -= straightLen;
 
-    // Curva esquerda
-    const t = s / arcLen;
-    const ang = Math.PI / 2 + t * Math.PI;
-    return { x: leftX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang };
+    if (s <= arcLen) {
+      const t = s / arcLen;
+      const ang = (Math.PI / 2) + t * Math.PI;
+      return { x: leftX + r * Math.cos(ang), y: midY + r * Math.sin(ang), angle: ang, n };
+    }
+    s -= arcLen;
+
+    return { x: leftX + s, y: topY, angle: -Math.PI / 2, n };
   }
 
   const pts: Pt[] = [];
-  // Offset para alinhar o 0 no local correto (direita, no centro do arco)
-  const offset = straightLen + (arcLen / 2) - (0 * step); 
-  
-  for (let i = 0; i < count; i++) {
-    pts.push(pointAt((i * step + offset) % totalLen));
+  for (let i = 0; i < WHEEL_EU.length; i++) {
+    pts.push(pointAt(i));
   }
   return pts;
 }
@@ -74,12 +77,12 @@ export default function RaceTrack({
   sel: SelState;
   onPick: (n: number) => void;
 }) {
-  const pts = buildTrackPoints(WHEEL_EU.length);
-  const viewW = 1000;
-  const viewH = 260;
+  const pts = buildTrackPoints();
+  const viewW = 900;
+  const viewH = 240;
 
   return (
-    <div className="raceBox" style={{ padding: '10px', background: 'transparent' }}>
+    <div className="raceBox" aria-label="Race Profissional">
       <svg viewBox={`0 0 ${viewW} ${viewH}`} width="100%" height="100%" preserveAspectRatio="xMidYMid meet">
         <defs>
           {WHEEL_EU.map(n => {
@@ -99,56 +102,53 @@ export default function RaceTrack({
           })}
         </defs>
 
-        {/* Estrutura de Fundo da Pista (Oval) */}
+        {/* Fundo da Pista */}
         <path
-          d="M 120,30 L 780,30 A 90,90 0 0 1 780,210 L 120,210 A 90,90 0 0 1 120,30 Z"
-          fill="#1a1a1a"
-          stroke="#444"
-          strokeWidth="4"
+          d="M 170,30 L 730,30 A 90,90 0 0 1 730,210 L 170,210 A 90,90 0 0 1 170,30 Z"
+          fill="rgba(0,0,0,0.8)"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="2"
         />
 
-        {/* Linhas Divisórias das Zonas */}
-        {/* TIER */}
-        <line x1="120" y1="30" x2="280" y2="210" stroke="#666" strokeWidth="2" />
-        {/* ORPHELINS (Esquerda) */}
-        <line x1="320" y1="30" x2="320" y2="210" stroke="#666" strokeWidth="2" />
-        {/* ORPHELINS (Direita) / VOISINS */}
-        <line x1="480" y1="30" x2="480" y2="210" stroke="#666" strokeWidth="2" />
-        
-        {/* Círculo do ZERO */}
-        <ellipse cx="720" cy="120" rx="90" ry="65" fill="none" stroke="#666" strokeWidth="2" />
+        <path
+          d="M 170,75 L 730,75 A 45,45 0 0 1 730,165 L 170,165 A 45,45 0 0 1 170,75 Z"
+          fill="none"
+          stroke="rgba(255,255,255,0.3)"
+          strokeWidth="2"
+        />
 
-        {/* Textos das Zonas */}
-        <text x="210" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#888" style={{ pointerEvents: 'none' }}>TIER</text>
-        <text x="400" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#888" style={{ pointerEvents: 'none' }}>ORPHELINS</text>
-        <text x="580" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#888" style={{ pointerEvents: 'none' }}>VOISINS</text>
-        <text x="720" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="#888" style={{ pointerEvents: 'none' }}>ZERO</text>
+        {/* Divisórias de Zonas */}
+        <line x1="280" y1="75" x2="360" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <line x1="480" y1="75" x2="480" y2="165" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
+        <path d="M 680,75 Q 740,120 680,165" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" />
 
-        {/* Números da Pista */}
-        {WHEEL_EU.map((n, i) => {
-          const p = pts[i];
+        <text x="230" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">TIER</text>
+        <text x="410" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">ORPHELINS</text>
+        <text x="580" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">VOISINS</text>
+        <text x="750" y="125" textAnchor="middle" fontSize="16" fontWeight="bold" fill="rgba(255,255,255,0.7)">ZERO</text>
+
+        {/* Números da Pista (Bolinhas) */}
+        {pts.map((p) => {
+          const n = p.n;
           const base = colorOf(n);
           const override = selectionFill(sel, n);
-          const fill = override ?? (base === 'red' ? '#c82d2d' : base === 'green' ? '#0f7a3a' : '#1c1c1c');
+          const fill = override ?? `var(--${base})`;
           
-          const rotation = (p.angle * 180) / Math.PI + 90;
-
           return (
             <g 
               key={n} 
               onClick={() => onPick(n)} 
               style={{ cursor: "pointer" }}
+              className="raceNode"
             >
-              <rect
-                x={p.x - 18}
-                y={p.y - 25}
-                width="36"
-                height="50"
-                rx="2"
+              <circle
+                cx={p.x}
+                cy={p.y}
+                r="18"
                 fill={fill}
-                stroke="#333"
+                stroke="rgba(255,255,255,0.2)"
                 strokeWidth="1"
-                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
+                className="raceCell"
               />
               <text 
                 x={p.x} 
@@ -157,8 +157,7 @@ export default function RaceTrack({
                 fontSize="14" 
                 fontWeight="bold" 
                 fill="#fff"
-                transform={`rotate(${rotation}, ${p.x}, ${p.y})`}
-                style={{ userSelect: 'none', pointerEvents: 'none' }}
+                style={{ userSelect: 'none' }}
               >
                 {n}
               </text>
