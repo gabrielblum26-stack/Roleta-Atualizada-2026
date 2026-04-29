@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { wheelDistance } from "../lib/roulette";
+import { wheelDistance, WHEEL_EU } from "../lib/roulette";
 
 export type MovementRecord = {
   from: number;
@@ -46,10 +46,25 @@ export default function MovementPanel({
   let lastDirection = "";
   let lastIsH = false;
 
+  let leftNum = -1;
+  let rightNum = -1;
+
   if (lastMovement) {
     lastIsH = lastMovement.h <= lastMovement.ah;
     lastDistance = lastIsH ? lastMovement.h : lastMovement.ah;
     lastDirection = lastIsH ? "H" : "A";
+
+    // Lógica ESQUERDA/DIREITA: X casas de intervalo significa o (X+1)º número
+    const currentIdx = WHEEL_EU.indexOf(lastMovement.to);
+    if (currentIdx >= 0) {
+      const L = WHEEL_EU.length;
+      const step = lastDistance + 1;
+      
+      // ESQUERDA (Anti-Horário): X - (dist + 1)
+      leftNum = WHEEL_EU[(currentIdx - step + L * 10) % L];
+      // DIREITA (Horário): X + (dist + 1)
+      rightNum = WHEEL_EU[(currentIdx + step) % L];
+    }
   }
 
   const handleCellClick = (direction: string, distance: number) => {
@@ -130,6 +145,14 @@ export default function MovementPanel({
             <div className="highlightValue" style={{ color: getMovementColor(lastDistance) }}>
               {lastDirection}/{lastDistance}
             </div>
+          </div>
+          <div className="highlightBox">
+            <div className="highlightLabel">ESQUERDA</div>
+            <div className="highlightValue" style={{ color: "#26d07c" }}>{leftNum !== -1 ? leftNum : "--"}</div>
+          </div>
+          <div className="highlightBox">
+            <div className="highlightLabel">DIREITA</div>
+            <div className="highlightValue" style={{ color: "#26d07c" }}>{rightNum !== -1 ? rightNum : "--"}</div>
           </div>
         </div>
       )}
