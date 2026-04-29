@@ -9,9 +9,8 @@ type Pt = { x: number; y: number; angle: number; n: number };
 
 /**
  * Constrói os pontos da Racetrack:
- * - 0 no canto inferior direito
- * - Sequência INVERTIDA (0, 26, 3, 35...) subindo pela curva direita
- * - Isso corresponde exatamente à foto enviada
+ * - 0 no CENTRO da curva direita (onde o 3 estava antes)
+ * - Sequência segue a ordem da foto (0, 26, 3, 35...)
  */
 function buildTrackPoints(): Pt[] {
   const W = 900;
@@ -31,12 +30,16 @@ function buildTrackPoints(): Pt[] {
   const step = totalLen / WHEEL_EU.length;
 
   // Invertemos a ordem dos números para que do 0 suba o 26, 3, 35...
-  // A ordem original é [0, 32, 15, ..., 3, 26]
-  // Queremos que a renderização siga [0, 26, 3, 35, 12, 28, ...]
   const reversedWheel = [WHEEL_EU[0], ...[...WHEEL_EU].slice(1).reverse()];
 
+  // Na versão anterior, o s=0 era o início do arco direito (embaixo).
+  // O centro do arco direito ocorre em s = arcLen / 2.
+  // Queremos que o índice 0 (o número 0) esteja nesse centro.
+  // Então aplicamos um offset negativo de arcLen / 2.
+  const offset = - (arcLen / 2);
+
   function pointAt(index: number): Pt {
-    let s = (index * step) % totalLen;
+    let s = (index * step + offset + totalLen * 2) % totalLen;
     const n = reversedWheel[index];
 
     // 1. Arco Direito (Subindo: de baixo para cima pela direita)
