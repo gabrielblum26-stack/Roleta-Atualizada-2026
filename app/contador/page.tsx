@@ -2,7 +2,7 @@
 
 import { useState, useMemo, useEffect } from "react";
 import RaceTrack from "../components/RaceTrack";
-import { initSel, setActiveColor, markMultiple, SelState } from "../lib/selection";
+import { initSel, setActiveColor, markMultiple, SelState, getNumberColors } from "../lib/selection";
 import { wheelDistance, WHEEL_EU } from "../lib/roulette";
 
 type SelectionPair = {
@@ -67,6 +67,18 @@ export default function ContadorPage() {
     }
   };
 
+  const getCellStyles = (n: number) => {
+    const nColors = getNumberColors(sel, n);
+    if (nColors.length === 0) return {};
+    if (nColors.length === 1) return { backgroundColor: nColors[0], boxShadow: `0 0 15px ${nColors[0]}88` };
+    const step = 100 / nColors.length;
+    const gradientParts = nColors.map((c, i) => `${c} ${i * step}%, ${c} ${(i + 1) * step}%`);
+    return {
+      background: `linear-gradient(135deg, ${gradientParts.join(", ")})`,
+      boxShadow: `0 0 15px ${nColors[0]}88`
+    };
+  };
+
   const clearAll = () => {
     setSel(initSel());
     setHistory([]);
@@ -87,7 +99,7 @@ export default function ContadorPage() {
       </div>
 
       <div className="panel" style={{ padding: '10px', marginBottom: '20px', background: '#1a1a1a' }}>
-        <RaceTrack sel={sel} onPick={onPick} />
+        <RaceTrack sel={sel} onPick={onPick} getCellStyles={getCellStyles} />
       </div>
 
       <div className="results-container">
