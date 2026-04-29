@@ -41,16 +41,19 @@ export default function KeyboardPage() {
     nums: Array.from({ length: 37 }, (_, n) => n).filter(n => n % 10 === i)
   }));
 
+  // Função dummy para satisfazer o tipoProps, já que o teclado não mostra seleções coloridas
+  const getCellStyles = () => ({});
+
   return (
     <div className="keyboard-container" style={{ padding: "15px", display: "flex", flexDirection: "column", gap: "15px" }}>
       <div className="section">
         <h2 style={{ fontSize: "14px", marginBottom: "10px", color: "#aaa" }}>RACETRACK</h2>
-        <RaceTrack sel={sel} onPick={onPick} />
+        <RaceTrack sel={sel} onPick={onPick} getCellStyles={getCellStyles} />
       </div>
 
       <div className="section">
         <h2 style={{ fontSize: "14px", marginBottom: "10px", color: "#aaa" }}>MAPA</h2>
-        <TableMap sel={sel} rep={new Set()} onPick={onPick} />
+        <TableMap sel={sel} repHighlights={new Set()} onPick={onPick} getCellStyles={getCellStyles} />
       </div>
 
       <div className="section">
