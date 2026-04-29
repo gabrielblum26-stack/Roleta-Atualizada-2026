@@ -24,8 +24,9 @@ export default function Page() {
   const [showEaster99, setShowEaster99] = useState(false);
 
   // Estados para o Calculador de Distância
-  const [distN1, setDistN1] = useState<string>("");
-  const [distN2, setDistN2] = useState<string>("");
+  const [distN1, setDistN1] = useState<number | null>(null);
+  const [distN2, setDistN2] = useState<number | null>(null);
+  const [pickingFor, setPickingFor] = useState<"n1" | "n2" | null>(null);
 
   // Estados para minimizar blocos
   const [minimized, setMinimized] = useState({
@@ -164,6 +165,16 @@ export default function Page() {
   }
 
   function onSelect(n: number) {
+    if (pickingFor === "n1") {
+      setDistN1(n);
+      setPickingFor(null);
+      return;
+    }
+    if (pickingFor === "n2") {
+      setDistN2(n);
+      setPickingFor(null);
+      return;
+    }
     setSel((prev) => applyClick(prev, n, selMode, markingMode));
   }
 
@@ -209,12 +220,10 @@ export default function Page() {
   }, [history]);
 
   const calcDist = useMemo(() => {
-    const n1 = parseInt(distN1);
-    const n2 = parseInt(distN2);
-    if (isNaN(n1) || isNaN(n2) || n1 < 0 || n1 > 36 || n2 < 0 || n2 > 36) return null;
+    if (distN1 === null || distN2 === null) return null;
     
-    const idx1 = WHEEL_EU.indexOf(n1);
-    const idx2 = WHEEL_EU.indexOf(n2);
+    const idx1 = WHEEL_EU.indexOf(distN1);
+    const idx2 = WHEEL_EU.indexOf(distN2);
     const L = WHEEL_EU.length;
     
     const h = (idx2 - idx1 + L) % L;
@@ -382,33 +391,33 @@ export default function Page() {
             <div className={`panel-wrap ${minimized.raceDist ? "minimized" : ""}`} style={{ display: 'flex', flexDirection: 'column', gap: '10px', height: '100%' }}>
               <MovementPanel history={history} />
               
-              {/* Calculador de Distância - Agora dentro do bloco Deslocamento */}
-              <div className="panel distCalcInside">
-                <div className="distCalcTitle">CALCULADORA DE CASAS</div>
+              {/* Calculador de Distância - Agora com botões de seleção */}
+              <div className={`panel distCalcInside ${pickingFor ? 'isPicking' : ''}`}>
+                <div className="distCalcTitle">
+                  {pickingFor ? `SELECIONE O NÚMERO PARA ${pickingFor.toUpperCase()} NA RACE...` : 'CALCULADORA DE CASAS'}
+                </div>
                 <div className="distCalcContent">
-                  <div className="distInputGroup">
-                    <input 
-                      type="number" 
-                      placeholder="N1" 
-                      value={distN1} 
-                      onChange={(e) => setDistN1(e.target.value)}
-                      className="distInput"
-                    />
-                    <input 
-                      type="number" 
-                      placeholder="N2" 
-                      value={distN2} 
-                      onChange={(e) => setDistN2(e.target.value)}
-                      className="distInput"
-                    />
+                  <div className="distBtnGroup">
+                    <button 
+                      className={`distSelectBtn ${pickingFor === 'n1' ? 'active' : ''}`}
+                      onClick={() => setPickingFor(pickingFor === 'n1' ? null : 'n1')}
+                    >
+                      {distN1 !== null ? `N1: ${distN1}` : 'SEL. N1'}
+                    </button>
+                    <button 
+                      className={`distSelectBtn ${pickingFor === 'n2' ? 'active' : ''}`}
+                      onClick={() => setPickingFor(pickingFor === 'n2' ? null : 'n2')}
+                    >
+                      {distN2 !== null ? `N2: ${distN2}` : 'SEL. N2'}
+                    </button>
                   </div>
                   <div className="distResults">
                     <div className="distItem">
-                      <span className="distLabel">HORÁRIO:</span>
+                      <span className="distLabel">H:</span>
                       <span className="distValue">{calcDist ? calcDist.h : "--"}</span>
                     </div>
                     <div className="distItem">
-                      <span className="distLabel">ANTI-HORÁRIO:</span>
+                      <span className="distLabel">AH:</span>
                       <span className="distValue">{calcDist ? calcDist.ah : "--"}</span>
                     </div>
                   </div>
