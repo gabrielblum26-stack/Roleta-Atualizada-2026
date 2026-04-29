@@ -23,6 +23,10 @@ export default function Page() {
   const [markingMode, setMarkingMode] = useState<"unique" | "cumulative">("cumulative");
   const [showEaster99, setShowEaster99] = useState(false);
 
+  // Estados para o Calculador de Distância
+  const [distN1, setDistN1] = useState<string>("");
+  const [distN2, setDistN2] = useState<string>("");
+
   // Estados para minimizar blocos
   const [minimized, setMinimized] = useState({
     history: false,
@@ -205,6 +209,23 @@ export default function Page() {
     };
   }, [history]);
 
+  const calcDist = useMemo(() => {
+    const n1 = parseInt(distN1);
+    const n2 = parseInt(distN2);
+    if (isNaN(n1) || isNaN(n2) || n1 < 0 || n1 > 36 || n2 < 0 || n2 > 36) return null;
+    
+    const idx1 = WHEEL_EU.indexOf(n1);
+    const idx2 = WHEEL_EU.indexOf(n2);
+    const L = WHEEL_EU.length;
+    
+    // Sentido Horário (H): de n1 para n2 indo para a direita no array
+    const h = (idx2 - idx1 + L) % L;
+    // Sentido Anti-Horário (AH): de n1 para n2 indo para a esquerda no array
+    const ah = (idx1 - idx2 + L) % L;
+    
+    return { h, ah };
+  }, [distN1, distN2]);
+
   return (
     <div className="app">
       {showEaster99 && (
@@ -216,6 +237,39 @@ export default function Page() {
       <div className="panel topbar">
         <div className="topbarLine">
           <div className="userGreeting">Olá, Cleber!</div>
+          
+          {/* Calculador de Distância */}
+          <div className="distCalcWrap">
+            <div className="distInputGroup">
+              <input 
+                type="number" 
+                placeholder="N1" 
+                value={distN1} 
+                onChange={(e) => setDistN1(e.target.value)}
+                className="distInput"
+              />
+              <input 
+                type="number" 
+                placeholder="N2" 
+                value={distN2} 
+                onChange={(e) => setDistN2(e.target.value)}
+                className="distInput"
+              />
+            </div>
+            {calcDist && (
+              <div className="distResults">
+                <div className="distItem">
+                  <span className="distLabel">H:</span>
+                  <span className="distValue">{calcDist.h}</span>
+                </div>
+                <div className="distItem">
+                  <span className="distLabel">AH:</span>
+                  <span className="distValue">{calcDist.ah}</span>
+                </div>
+              </div>
+            )}
+          </div>
+
           <label>Digite (vírgula):</label>
           <div className="inputWrap">
             <input

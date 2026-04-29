@@ -119,6 +119,65 @@ body{
   margin-right: 15px;
   text-shadow: 0 0 10px rgba(255,208,0,0.3);
 }
+
+/* Calculador de Distância */
+.distCalcWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255,255,255,0.05);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  margin-right: 10px;
+}
+
+.distInputGroup {
+  display: flex;
+  gap: 4px;
+}
+
+.distInput {
+  width: 45px;
+  height: 28px;
+  background: #000;
+  border: 1px solid #444;
+  border-radius: 6px;
+  color: #fff;
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.distInput::-webkit-inner-spin-button,
+.distInput::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.distResults {
+  display: flex;
+  gap: 10px;
+  margin-left: 5px;
+}
+
+.distItem {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.distLabel {
+  font-size: 10px;
+  color: #888;
+  font-weight: bold;
+}
+
+.distValue {
+  font-size: 14px;
+  color: #ffd000;
+  font-weight: 900;
+}
 .topbar label{
   font-weight:900;
   color:var(--muted);
