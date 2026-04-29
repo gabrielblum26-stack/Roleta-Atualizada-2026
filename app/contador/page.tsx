@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import RaceTrack from "../components/RaceTrack";
 import { initSel, setActiveColor, markMultiple, SelState } from "../lib/selection";
-import { wheelDistance } from "../lib/roulette";
+import { wheelDistance, WHEEL_EU } from "../lib/roulette";
 
 type SelectionPair = {
   n1: number;

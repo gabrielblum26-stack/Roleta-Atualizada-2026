@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { colorOf, parseInput, neighborsEU } from "./lib/roulette";
+import { colorOf, parseInput, neighborsEU, WHEEL_EU } from "./lib/roulette";
 import { initSel, applyClick, selClass, SelMode, setActiveColor, SEL_ORDER, markMultiple, getNumberColors } from "./lib/selection";
 import RaceTrack from "./components/RaceTrack";
 import TableMap, { type RepHighlight } from "./components/TableMap";
